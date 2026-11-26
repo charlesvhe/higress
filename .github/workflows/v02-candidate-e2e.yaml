@@ -1,0 +1,102 @@
+name: V02 original candidate e2e
+
+on:
+  push:
+    branches:
+      - verify/v02-candidate-e2e-20261126
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  EXPECTED_HEAD: d9e348f2609c08f7c5a26e847e194b634941ecca
+  ARTIFACT_SOURCE_HEAD: c4c537f37175befc375e65ba059e8df477dc52a4
+
+jobs:
+  candidate-e2e:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    steps:
+      - name: Check out verification tooling at merged main
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.EXPECTED_HEAD }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install ORAS
+        run: |
+          set -euo pipefail
+          curl -fsSL https://github.com/oras-project/oras/releases/download/v1.2.3/oras_1.2.3_linux_amd64.tar.gz \
+            | tar -xz -C /usr/local/bin oras
+          oras version
+
+      - name: Fetch exact V02 native outcome index
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api repos/higress-group/higress/actions/artifacts/15096384167/zip > /tmp/v02-native.zip
+          unzip -p /tmp/v02-native.zip native-results.txt > /tmp/v02-native-results.txt
+          test "$(wc -l < /tmp/v02-native-results.txt)" -eq 9
+          cat /tmp/v02-native-results.txt
+
+      - name: Pull original candidate Wasm and arrange exact artifacts
+        env:
+          ARTIFACT_DIR: ${{ github.workspace }}/out/candidate-artifacts
+        run: |
+          set -euo pipefail
+          mkdir -p "$ARTIFACT_DIR"
+          while IFS='|' read -r source ref expected; do
+            dir="$ARTIFACT_DIR/cpp201-$source-$EXPECTED_HEAD"
+            mkdir -p "$dir"
+            ok=false
+            for attempt in 1 2 3 4; do
+              if oras pull "$ref" -o "$dir"; then ok=true; break; fi
+              sleep 5
+            done
+            test "$ok" = true
+            test -s "$dir/plugin.wasm"
+            actual="$(sha256sum "$dir/plugin.wasm" | awk '{print $1}')"
+            test "$actual" = "$expected"
+            printf '%s\n' "$ARTIFACT_SOURCE_HEAD" > "$dir/source-head.txt"
+            (cd "$dir" && sha256sum plugin.wasm source-head.txt > SHA256SUMS)
+            printf '%s\t%s\t%s\n' "$source" "$expected" "$actual"
+          done <<'REFS'
+          basic_auth|higress-registry.cn-hangzhou.cr.aliyuncs.com/candidates/basic-auth:683323360a5e0e18bf72fbd97af4371b053c0cdfe78869cc0f354bb8be8c912bea7848d6002e7d618109162ebcfb3134775e59ecda2c48127b4649bc905c3d90@sha256:7468c86a179071549d0971ab0dccc1cac0649038613b1e4e3751d3eef3b80015|c0fec33f3d36906a1f659e412411163f12eff383d474b01ab6234a873af3485d
+          key_auth|higress-registry.cn-hangzhou.cr.aliyuncs.com/candidates/key-auth:683323360a5e0e18bf72fbd97af4371b053c0cdfe78869cc0f354bb8be8c912b35bcbc0c2b86077f26f59229189202e60108f2085004e2d0e318ef72a8574f12@sha256:1907a792330293521b4dd288efd86a49f0872cbc6834e7d3b38c46084d0c8605|1492a8cc5ea1220ae84e064dfa0bdfa6fe1722654724f17243ec5ca0e4bfe1c3
+          request_block|higress-registry.cn-hangzhou.cr.aliyuncs.com/candidates/request-block:683323360a5e0e18bf72fbd97af4371b053c0cdfe78869cc0f354bb8be8c912bc19ae0dcf34d9b2276b215124e1b48987248650cedd796bacac92ec62bebc407@sha256:b971a1b1b8c6f3c6951902a4fcb3d4258cc8fc2065a49ec169fc81f81ccff9cd|cf3313c18d8d06527713d4842d4eed5fe6ca1197dde2970db6f0af8804982aa5
+          REFS
+
+      - name: Run three e2e cases on original candidate bytes
+        env:
+          ARTIFACT_DIR: ${{ github.workspace }}/out/candidate-artifacts
+          NATIVE_RESULTS: /tmp/v02-native-results.txt
+          EVIDENCE_DIR: ${{ github.workspace }}/out/v02-candidate-e2e
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('tools/hack/cpp201-run-e2e.sh')
+          s = p.read_text()
+          old = 'test "$(cat "$artifact/source-head.txt")" = "$EXPECTED_HEAD"'
+          new = 'test "$(cat "$artifact/source-head.txt")" = "$ARTIFACT_SOURCE_HEAD"'
+          if s.count(old) != 1:
+              raise SystemExit('unexpected source-head assertion count')
+          Path('tools/hack/cpp201-run-e2e-candidate.sh').write_text(s.replace(old, new))
+          PY
+          chmod +x tools/hack/cpp201-run-e2e-candidate.sh
+          EXPECTED_HEAD="$EXPECTED_HEAD" ARTIFACT_SOURCE_HEAD="$ARTIFACT_SOURCE_HEAD" \
+            ARTIFACT_DIR="$ARTIFACT_DIR" NATIVE_RESULTS="$NATIVE_RESULTS" EVIDENCE_DIR="$EVIDENCE_DIR" \
+            bash tools/hack/cpp201-run-e2e-candidate.sh
+          printf '%s\n' "$ARTIFACT_SOURCE_HEAD" > "$EVIDENCE_DIR/artifact-source-head.txt"
+          printf '%s\n' 'original-candidate-oci=basic_auth,key_auth,request_block; e2e=passed; no publish' > "$EVIDENCE_DIR/candidate-boundary.txt"
+
+      - name: Upload candidate e2e evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v02-original-candidate-e2e
+          path: out/v02-candidate-e2e
+          if-no-files-found: error
