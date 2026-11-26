@@ -30,6 +30,6 @@
 	shallow = true
 [submodule "envoy/envoy"]
 	path = envoy/envoy
-	url = https://github.com/higress-group/envoy
+	url = https://github.com/charlesvhe/envoy
 	branch = envoy-1.36
 	shallow = true

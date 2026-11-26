@@ -1,0 +1,237 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/common/wasm:wasm_test
+-----------------------------------------------------------------------------
+[==========] Running 44 tests from 6 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from WasmWorkerInitStatsTest
+[ RUN      ] WasmWorkerInitStatsTest.TracksInitialFailureSkipAndWrapperLifetime
+[2026-11-26 07:46:05.581][757442][critical][wasm] [source/extensions/common/wasm/wasm.cc:1110] Plugin configured to fail closed failed to load
+[       OK ] WasmWorkerInitStatsTest.TracksInitialFailureSkipAndWrapperLifetime (9 ms)
+[----------] 1 test from WasmWorkerInitStatsTest (9 ms total)
+
+[----------] 9 tests from WasmWorkerInitializationRetryTest
+[ RUN      ] WasmWorkerInitializationRetryTest.PersistentFailureUsesRequestOnlyFixedGuardWithoutCap
+[       OK ] WasmWorkerInitializationRetryTest.PersistentFailureUsesRequestOnlyFixedGuardWithoutCap (0 ms)
+[ RUN      ] WasmWorkerInitializationRetryTest.IdleDoesNotAttemptAndFirstRequestRecoversImmediately
+[       OK ] WasmWorkerInitializationRetryTest.IdleDoesNotAttemptAndFirstRequestRecoversImmediately (0 ms)
+[ RUN      ] WasmWorkerInitializationRetryTest.MainThreadFailureIsNeutralAndNeverRecovers
+[       OK ] WasmWorkerInitializationRetryTest.MainThreadFailureIsNeutralAndNeverRecovers (0 ms)
+[ RUN      ] WasmWorkerInitializationRetryTest.MainThreadSuccessPreservesReadyHandleOwnership
+[       OK ] WasmWorkerInitializationRetryTest.MainThreadSuccessPreservesReadyHandleOwnership (0 ms)
+[ RUN      ] WasmWorkerInitializationRetryTest.FourRequestWorkersCountAndRecoverIndependently
+[       OK ] WasmWorkerInitializationRetryTest.FourRequestWorkersCountAndRecoverIndependently (0 ms)
+[ RUN      ] WasmWorkerInitializationRetryTest.LatestRetryReasonCanBecomeTerminal
+[       OK ] WasmWorkerInitializationRetryTest.LatestRetryReasonCanBecomeTerminal (0 ms)
+[ RUN      ] WasmWorkerInitializationRetryTest.RetryAllowlistIsTerminalByDefault
+[       OK ] WasmWorkerInitializationRetryTest.RetryAllowlistIsTerminalByDefault (0 ms)
+[ RUN      ] WasmWorkerInitializationRetryTest.ReplacementOwnsStateButSharesVmKeyGuard
+[       OK ] WasmWorkerInitializationRetryTest.ReplacementOwnsStateButSharesVmKeyGuard (0 ms)
+[ RUN      ] WasmWorkerInitializationRetryTest.GuardFirstAttemptAtEpochAndCrossKeySweep
+[       OK ] WasmWorkerInitializationRetryTest.GuardFirstAttemptAtEpochAndCrossKeySweep (0 ms)
+[----------] 9 tests from WasmWorkerInitializationRetryTest (5 ms total)
+
+[----------] 22 tests from Runtimes/WasmCommonTest
+[ RUN      ] Runtimes/WasmCommonTest.BaseWasmHandleDeletionUsesOwningDispatcher/null_cpp
+[2026-11-26 07:46:05.607][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:326] Base Wasm created 1 now active
+[2026-11-26 07:46:05.607][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:364] Thread-Local Wasm created 2 now active
+[2026-11-26 07:46:05.607][757442][info][wasm] [source/extensions/common/wasm/context.cc:1650] wasm log base_wasm_owner_dispatcher: on_vm_start 
+[2026-11-26 07:46:05.607][757442][info][wasm] [source/extensions/common/wasm/context.cc:1650] wasm log base_wasm_owner_dispatcher: on_configuration 
+[2026-11-26 07:46:05.607][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 1 remaining active
+[2026-11-26 07:46:05.608][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 0 remaining active
+[       OK ] Runtimes/WasmCommonTest.BaseWasmHandleDeletionUsesOwningDispatcher/null_cpp (31 ms)
+[ RUN      ] Runtimes/WasmCommonTest.WorkerCloneFailureDoesNotPoisonBaseOrNackNextSameVmKeyConfig/null_cpp
+[2026-11-26 07:46:05.635][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:326] Base Wasm created 1 now active
+[2026-11-26 07:46:05.635][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:364] Thread-Local Wasm created 2 now active
+[2026-11-26 07:46:05.635][757442][info][wasm] [source/extensions/common/wasm/context.cc:1650] wasm log worker_clone_failure_isolation: on_vm_start 
+[2026-11-26 07:46:05.635][757442][info][wasm] [source/extensions/common/wasm/context.cc:1650] wasm log worker_clone_failure_isolation: on_configuration 
+[2026-11-26 07:46:05.635][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 1 remaining active
+[2026-11-26 07:46:05.636][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 0 remaining active
+[       OK ] Runtimes/WasmCommonTest.WorkerCloneFailureDoesNotPoisonBaseOrNackNextSameVmKeyConfig/null_cpp (27 ms)
+[ RUN      ] Runtimes/WasmCommonTest.WasmFailState/null_cpp
+[2026-11-26 07:46:05.655][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:326] Base Wasm created 1 now active
+[2026-11-26 07:46:05.655][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 0 remaining active
+[       OK ] Runtimes/WasmCommonTest.WasmFailState/null_cpp (12 ms)
+[ RUN      ] Runtimes/WasmCommonTest.Logging/null_cpp
+[2026-11-26 07:46:05.668][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:326] Base Wasm created 1 now active
+[2026-11-26 07:46:05.668][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:364] Thread-Local Wasm created 2 now active
+[2026-11-26 07:46:05.668][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 1 remaining active
+test trace logging
+test debug logging
+[2026-11-26 07:46:05.668][757442][debug][wasm] [source/extensions/common/wasm/context.cc:1647] wasm log: test debug logging
+test warn logging
+[2026-11-26 07:46:05.668][757442][warning][wasm] [source/extensions/common/wasm/context.cc:1653] wasm log: test warn logging
+test error logging
+[2026-11-26 07:46:05.668][757442][error][wasm] [source/extensions/common/wasm/context.cc:1656] wasm log: test error logging
+log level is 1
+[2026-11-26 07:46:05.668][757442][info][wasm] [source/extensions/common/wasm/context.cc:1650] wasm log: log level is 1
+on_configuration configure-test
+[2026-11-26 07:46:05.668][757442][info][wasm] [source/extensions/common/wasm/context.cc:1650] wasm log: on_configuration configure-test
+on_done logging
+[2026-11-26 07:46:05.668][757442][info][wasm] [source/extensions/common/wasm/context.cc:1650] wasm log: on_done logging
+on_delete logging
+[2026-11-26 07:46:05.668][757442][info][wasm] [source/extensions/common/wasm/context.cc:1650] wasm log: on_delete logging
+[2026-11-26 07:46:05.668][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 0 remaining active
+[       OK ] Runtimes/WasmCommonTest.Logging/null_cpp (12 ms)
+[ RUN      ] Runtimes/WasmCommonTest.BadSignature/null_cpp
+[       OK ] Runtimes/WasmCommonTest.BadSignature/null_cpp (11 ms)
+[ RUN      ] Runtimes/WasmCommonTest.Segv/null_cpp
+[       OK ] Runtimes/WasmCommonTest.Segv/null_cpp (11 ms)
+[ RUN      ] Runtimes/WasmCommonTest.DivByZero/null_cpp
+[       OK ] Runtimes/WasmCommonTest.DivByZero/null_cpp (11 ms)
+[ RUN      ] Runtimes/WasmCommonTest.IntrinsicGlobals/null_cpp
+[2026-11-26 07:46:05.716][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:326] Base Wasm created 1 now active
+NaN nan
+[2026-11-26 07:46:05.716][757442][warning][wasm] [source/extensions/common/wasm/context.cc:1653] wasm log: NaN nan
+inf inf
+[2026-11-26 07:46:05.716][757442][warning][wasm] [source/extensions/common/wasm/context.cc:1653] wasm log: inf inf
+inf inf
+[2026-11-26 07:46:05.716][757442][warning][wasm] [source/extensions/common/wasm/context.cc:1653] wasm log: inf inf
+inf inf
+[2026-11-26 07:46:05.716][757442][warning][wasm] [source/extensions/common/wasm/context.cc:1653] wasm log: inf inf
+[2026-11-26 07:46:05.716][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 0 remaining active
+[       OK ] Runtimes/WasmCommonTest.IntrinsicGlobals/null_cpp (12 ms)
+[ RUN      ] Runtimes/WasmCommonTest.Utilities/null_cpp
+[2026-11-26 07:46:05.728][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:326] Base Wasm created 1 now active
+on_vm_start utilities
+[2026-11-26 07:46:05.729][757442][info][wasm] [source/extensions/common/wasm/context.cc:1650] wasm log: on_vm_start utilities
+[2026-11-26 07:46:05.729][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 0 remaining active
+[       OK ] Runtimes/WasmCommonTest.Utilities/null_cpp (12 ms)
+[ RUN      ] Runtimes/WasmCommonTest.Stats/null_cpp
+get counter = 1
+get counter = 2
+get counter = 5
+get gauge = 2
+get histogram = Unsupported
+[       OK ] Runtimes/WasmCommonTest.Stats/null_cpp (12 ms)
+[ RUN      ] Runtimes/WasmCommonTest.Foreign/null_cpp
+[2026-11-26 07:46:05.754][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:326] Base Wasm created 1 now active
+compress 2000 -> 23
+uncompress 23 -> 2000
+[2026-11-26 07:46:05.754][757442][debug][wasm] [source/extensions/common/wasm/context.cc:1647] wasm log: uncompress 23 -> 2000
+[2026-11-26 07:46:05.754][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 0 remaining active
+[       OK ] Runtimes/WasmCommonTest.Foreign/null_cpp (12 ms)
+[ RUN      ] Runtimes/WasmCommonTest.OnForeign/null_cpp
+[2026-11-26 07:46:05.766][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:326] Base Wasm created 1 now active
+on_foreign start
+[2026-11-26 07:46:05.766][757442][debug][wasm] [source/extensions/common/wasm/context.cc:1647] wasm log: on_foreign start
+on_foreign_function 7 13
+[2026-11-26 07:46:05.766][757442][info][wasm] [source/extensions/common/wasm/context.cc:1650] wasm log: on_foreign_function 7 13
+[2026-11-26 07:46:05.766][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 0 remaining active
+[       OK ] Runtimes/WasmCommonTest.OnForeign/null_cpp (12 ms)
+[ RUN      ] Runtimes/WasmCommonTest.WASI/null_cpp
+[       OK ] Runtimes/WasmCommonTest.WASI/null_cpp (11 ms)
+[ RUN      ] Runtimes/WasmCommonTest.VmCache/null_cpp
+[2026-11-26 07:46:05.791][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:326] Base Wasm created 1 now active
+[2026-11-26 07:46:05.791][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:364] Thread-Local Wasm created 2 now active
+[2026-11-26 07:46:05.791][757442][info][wasm] [source/extensions/common/wasm/context.cc:1650] wasm log: on_vm_start vm_cache
+[2026-11-26 07:46:05.791][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 1 remaining active
+[2026-11-26 07:46:05.791][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:364] Thread-Local Wasm created 2 now active
+on_vm_start vm_cache
+[2026-11-26 07:46:05.791][757442][info][wasm] [source/extensions/common/wasm/context.cc:1650] wasm log: on_vm_start vm_cache
+on_done logging
+[2026-11-26 07:46:05.791][757442][info][wasm] [source/extensions/common/wasm/context.cc:1650] wasm log: on_done logging
+[2026-11-26 07:46:05.791][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 1 remaining active
+on_delete logging
+[2026-11-26 07:46:05.791][757442][info][wasm] [source/extensions/common/wasm/context.cc:1650] wasm log: on_delete logging
+[2026-11-26 07:46:05.791][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 0 remaining active
+[       OK ] Runtimes/WasmCommonTest.VmCache/null_cpp (12 ms)
+[ RUN      ] Runtimes/WasmCommonTest.RemoteCode/null_cpp
+[       OK ] Runtimes/WasmCommonTest.RemoteCode/null_cpp (11 ms)
+[ RUN      ] Runtimes/WasmCommonTest.RemoteCodeMultipleRetry/null_cpp
+[       OK ] Runtimes/WasmCommonTest.RemoteCodeMultipleRetry/null_cpp (11 ms)
+[ RUN      ] Runtimes/WasmCommonTest.RestrictCapabilities/null_cpp
+[       OK ] Runtimes/WasmCommonTest.RestrictCapabilities/null_cpp (11 ms)
+[ RUN      ] Runtimes/WasmCommonTest.AllowOnVmStart/null_cpp
+[       OK ] Runtimes/WasmCommonTest.AllowOnVmStart/null_cpp (11 ms)
+[ RUN      ] Runtimes/WasmCommonTest.AllowLog/null_cpp
+[       OK ] Runtimes/WasmCommonTest.AllowLog/null_cpp (11 ms)
+[ RUN      ] Runtimes/WasmCommonTest.AllowWASI/null_cpp
+[       OK ] Runtimes/WasmCommonTest.AllowWASI/null_cpp (11 ms)
+[ RUN      ] Runtimes/WasmCommonTest.AllowOnContextCreate/null_cpp
+[       OK ] Runtimes/WasmCommonTest.AllowOnContextCreate/null_cpp (11 ms)
+[ RUN      ] Runtimes/WasmCommonTest.ThreadLocalCopyRetainsEnforcement/null_cpp
+[       OK ] Runtimes/WasmCommonTest.ThreadLocalCopyRetainsEnforcement/null_cpp (11 ms)
+[----------] 22 tests from Runtimes/WasmCommonTest (301 ms total)
+
+[----------] 5 tests from Runtimes/WasmCommonContextTest
+[ RUN      ] Runtimes/WasmCommonContextTest.OnDnsResolve/0
+[2026-11-26 07:46:05.920][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:326] Base Wasm created 1 now active
+[2026-11-26 07:46:05.920][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:364] Thread-Local Wasm created 2 now active
+[2026-11-26 07:46:05.920][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 1 remaining active
+[2026-11-26 07:46:05.921][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:364] Thread-Local Wasm created 2 now active
+TestRootContext::onResolveDns 2
+[2026-11-26 07:46:05.921][757442][warning][wasm] [source/extensions/common/wasm/context.cc:1653] wasm log vm_id: TestRootContext::onResolveDns 2
+TestRootContext::onResolveDns dns 1001 192.168.1.101:0
+[2026-11-26 07:46:05.921][757442][info][wasm] [source/extensions/common/wasm/context.cc:1650] wasm log vm_id: TestRootContext::onResolveDns dns 1001 192.168.1.101:0
+TestRootContext::onResolveDns dns 1001 192.168.1.102:0
+[2026-11-26 07:46:05.921][757442][info][wasm] [source/extensions/common/wasm/context.cc:1650] wasm log vm_id: TestRootContext::onResolveDns dns 1001 192.168.1.102:0
+TestRootContext::onResolveDns 1
+[2026-11-26 07:46:05.921][757442][warning][wasm] [source/extensions/common/wasm/context.cc:1653] wasm log vm_id: TestRootContext::onResolveDns 1
+TestRootContext::onDone 1
+[2026-11-26 07:46:05.956][757442][warning][wasm] [source/extensions/common/wasm/context.cc:1653] wasm log vm_id: TestRootContext::onDone 1
+[2026-11-26 07:46:05.956][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 1 remaining active
+[2026-11-26 07:46:05.956][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 0 remaining active
+[       OK ] Runtimes/WasmCommonContextTest.OnDnsResolve/0 (71 ms)
+[ RUN      ] Runtimes/WasmCommonContextTest.EmptyContext/0
+[2026-11-26 07:46:05.989][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:326] Base Wasm created 1 now active
+[2026-11-26 07:46:05.989][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:364] Thread-Local Wasm created 2 now active
+[2026-11-26 07:46:05.990][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 1 remaining active
+[2026-11-26 07:46:05.990][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:364] Thread-Local Wasm created 2 now active
+[2026-11-26 07:46:06.025][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 1 remaining active
+[2026-11-26 07:46:06.025][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 0 remaining active
+[       OK ] Runtimes/WasmCommonContextTest.EmptyContext/0 (68 ms)
+[ RUN      ] Runtimes/WasmCommonContextTest.LocalReplyWhenPanic/0
+[       OK ] Runtimes/WasmCommonContextTest.LocalReplyWhenPanic/0 (66 ms)
+[ RUN      ] Runtimes/WasmCommonContextTest.ProcessInvalidGRPCStatusCodeAsEmptyInLocalReply/0
+[2026-11-26 07:46:06.125][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:326] Base Wasm created 1 now active
+[2026-11-26 07:46:06.125][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:364] Thread-Local Wasm created 2 now active
+[2026-11-26 07:46:06.125][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 1 remaining active
+[2026-11-26 07:46:06.125][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:364] Thread-Local Wasm created 2 now active
+[2026-11-26 07:46:06.160][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 1 remaining active
+[2026-11-26 07:46:06.160][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 0 remaining active
+[       OK ] Runtimes/WasmCommonContextTest.ProcessInvalidGRPCStatusCodeAsEmptyInLocalReply/0 (68 ms)
+[ RUN      ] Runtimes/WasmCommonContextTest.ProcessValidGRPCStatusCodeAsEmptyInLocalReply/0
+[2026-11-26 07:46:06.193][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:326] Base Wasm created 1 now active
+[2026-11-26 07:46:06.193][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:364] Thread-Local Wasm created 2 now active
+[2026-11-26 07:46:06.193][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 1 remaining active
+[2026-11-26 07:46:06.194][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:364] Thread-Local Wasm created 2 now active
+[2026-11-26 07:46:06.228][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 1 remaining active
+[2026-11-26 07:46:06.228][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 0 remaining active
+[       OK ] Runtimes/WasmCommonContextTest.ProcessValidGRPCStatusCodeAsEmptyInLocalReply/0 (68 ms)
+[----------] 5 tests from Runtimes/WasmCommonContextTest (343 ms total)
+
+[----------] 3 tests from Runtimes/WasmLocalReplyTest
+[ RUN      ] Runtimes/WasmLocalReplyTest.DuplicateLocalReply/0
+[2026-11-26 07:46:06.264][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:326] Base Wasm created 1 now active
+[2026-11-26 07:46:06.264][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:364] Thread-Local Wasm created 2 now active
+[2026-11-26 07:46:06.264][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 1 remaining active
+[2026-11-26 07:46:06.264][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:364] Thread-Local Wasm created 2 now active
+[2026-11-26 07:46:06.305][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 1 remaining active
+[2026-11-26 07:46:06.306][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 0 remaining active
+[       OK ] Runtimes/WasmLocalReplyTest.DuplicateLocalReply/0 (77 ms)
+[ RUN      ] Runtimes/WasmLocalReplyTest.LocalReplyInRequestAndResponse/0
+[2026-11-26 07:46:06.341][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:326] Base Wasm created 1 now active
+[2026-11-26 07:46:06.341][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:364] Thread-Local Wasm created 2 now active
+[2026-11-26 07:46:06.341][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 1 remaining active
+[2026-11-26 07:46:06.341][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:364] Thread-Local Wasm created 2 now active
+[2026-11-26 07:46:06.383][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 1 remaining active
+[2026-11-26 07:46:06.383][757442][debug][wasm] [source/extensions/common/wasm/wasm.cc:417] ~Wasm 0 remaining active
+[       OK ] Runtimes/WasmLocalReplyTest.LocalReplyInRequestAndResponse/0 (77 ms)
+[ RUN      ] Runtimes/WasmLocalReplyTest.PanicDuringResponse/0
+[       OK ] Runtimes/WasmLocalReplyTest.PanicDuringResponse/0 (76 ms)
+[----------] 3 tests from Runtimes/WasmLocalReplyTest (231 ms total)
+
+[----------] 4 tests from PluginConfigRuntimes/PluginConfigTest
+[ RUN      ] PluginConfigRuntimes/PluginConfigTest.FailReloadPolicy/null_cpp
+[       OK ] PluginConfigRuntimes/PluginConfigTest.FailReloadPolicy/null_cpp (34 ms)
+[ RUN      ] PluginConfigRuntimes/PluginConfigTest.FailClosedPolicy/null_cpp
+[       OK ] PluginConfigRuntimes/PluginConfigTest.FailClosedPolicy/null_cpp (34 ms)
+[ RUN      ] PluginConfigRuntimes/PluginConfigTest.FailUnspecifiedPolicy/null_cpp
+[       OK ] PluginConfigRuntimes/PluginConfigTest.FailUnspecifiedPolicy/null_cpp (33 ms)
+[ RUN      ] PluginConfigRuntimes/PluginConfigTest.FailOpenPolicy/null_cpp
+[       OK ] PluginConfigRuntimes/PluginConfigTest.FailOpenPolicy/null_cpp (34 ms)
+[----------] 4 tests from PluginConfigRuntimes/PluginConfigTest (137 ms total)
+
+[----------] Global test environment tear-down
+[==========] 44 tests from 6 test suites ran. (1028 ms total)
+[  PASSED  ] 44 tests.

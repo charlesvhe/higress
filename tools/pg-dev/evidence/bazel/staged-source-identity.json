@@ -1,0 +1,29 @@
+{
+  "matched_changed_files": [
+    "higress/envoy/envoy/bazel/foreign_cc/BUILD",
+    "higress/envoy/envoy/bazel/foreign_cc/icu_data_filter.json",
+    "higress/envoy/envoy/source/common/postgres/BUILD",
+    "higress/envoy/envoy/source/common/postgres/async_client.cc",
+    "higress/envoy/envoy/source/common/postgres/async_client.h",
+    "higress/envoy/envoy/source/common/postgres/codec.cc",
+    "higress/envoy/envoy/source/common/postgres/codec.h",
+    "higress/envoy/envoy/source/extensions/common/wasm/BUILD",
+    "higress/envoy/envoy/source/extensions/common/wasm/context.cc",
+    "higress/envoy/envoy/source/extensions/common/wasm/context.h",
+    "higress/envoy/envoy/test/common/postgres/BUILD",
+    "higress/envoy/envoy/test/common/postgres/async_client_test.cc",
+    "higress/envoy/envoy/test/common/postgres/codec_test.cc",
+    "higress/envoy/envoy/test/extensions/common/wasm/wasm_test.cc",
+    "proxy-wasm-cpp-host/include/proxy-wasm/context.h",
+    "proxy-wasm-cpp-host/include/proxy-wasm/exports.h",
+    "proxy-wasm-cpp-host/include/proxy-wasm/sdk.h",
+    "proxy-wasm-cpp-host/include/proxy-wasm/wasm.h",
+    "proxy-wasm-cpp-host/include/proxy-wasm/wasm_api_impl.h",
+    "proxy-wasm-cpp-host/src/context.cc",
+    "proxy-wasm-cpp-host/src/exports.cc",
+    "proxy-wasm-cpp-host/src/null/null_plugin.cc",
+    "proxy-wasm-cpp-host/src/wamr/wamr.cc",
+    "proxy-wasm-cpp-host/src/wasm.cc"
+  ],
+  "manifest_sha256": "d4019e07942b7abb6ba7bdbdaf7abd65b5e321194ad9c8067c7fa7e62ef0c6b2"
+}

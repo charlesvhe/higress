@@ -1,0 +1,127 @@
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:467] initializing epoch 0 (base id=0, hot restart version=disabled)
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:469] statically linked extensions:
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.quic.connection_id_generator: envoy.quic.deterministic_connection_id_generator
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.regex_engines: envoy.regex_engines.google_re2
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.route_config_update_requester: envoy.route_config_update_requester.default
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.path.rewrite: envoy.path.rewrite.uri_template.uri_template_rewriter
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.filters.network: envoy.filters.network.http_connection_manager, envoy.http_connection_manager
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.transport_sockets.downstream: envoy.transport_sockets.quic, envoy.transport_sockets.raw_buffer, envoy.transport_sockets.starttls, envoy.transport_sockets.tls, raw_buffer, starttls, tls
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.connection_handler: envoy.connection_handler.default
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.filters.http: envoy.filters.http.match_delegate, envoy.filters.http.router, envoy.filters.http.wasm, envoy.router
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.built_in_formatters: envoy.built_in_formatters.http.default, envoy.built_in_formatters.stream_info.default
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.matching.network.input: envoy.matching.inputs.destination_ip, envoy.matching.inputs.destination_port, envoy.matching.inputs.direct_source_ip, envoy.matching.inputs.filter_state, envoy.matching.inputs.network_namespace, envoy.matching.inputs.server_name, envoy.matching.inputs.source_ip, envoy.matching.inputs.source_port, envoy.matching.inputs.source_type, envoy.matching.inputs.transport_protocol
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.http.header_validators: envoy.http.header_validators.envoy_default
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.upstream_options: envoy.extensions.upstreams.http.v3.HttpProtocolOptions, envoy.extensions.upstreams.tcp.v3.TcpProtocolOptions, envoy.upstreams.http.http_protocol_options, envoy.upstreams.tcp.tcp_protocol_options
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.quic.server.crypto_stream: envoy.quic.crypto_stream.server.quiche
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.tls.cert_validator: envoy.tls.cert_validator.default
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.srds_factory: envoy.srds_factory.default
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.udp_packet_writer: envoy.udp_packet_writer.default
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.matching.action: filter-chain-name
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.matching.http.input: envoy.matching.inputs.destination_ip, envoy.matching.inputs.destination_port, envoy.matching.inputs.direct_source_ip, envoy.matching.inputs.filter_state, envoy.matching.inputs.network_namespace, envoy.matching.inputs.request_headers, envoy.matching.inputs.request_trailers, envoy.matching.inputs.response_headers, envoy.matching.inputs.response_trailers, envoy.matching.inputs.server_name, envoy.matching.inputs.source_ip, envoy.matching.inputs.source_port, envoy.matching.inputs.source_type, query_params
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.upstreams: envoy.filters.connection_pools.http.generic
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.guarddog_actions: envoy.watchdog.abort_action
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.ssl.server_context_factory: envoy.ssl.server_context_factory.default
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.http.original_ip_detection: envoy.http.original_ip_detection.xff
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.rds_factory: envoy.rds_factory.default
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.route.early_data_policy: envoy.route.early_data_policy.default
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.quic.proof_source: envoy.quic.proof_source.filter_chain
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.grpc_credentials: envoy.grpc_credentials.default
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.clusters: envoy.cluster.static
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.upstream.local_address_selector: envoy.upstream.local_address_selector.default_local_address_selector
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.bootstrap: envoy.extensions.network.socket_interface.default_socket_interface
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   quic.http_server_connection: quic.http_server_connection.default
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.request_id: envoy.request_id.uuid
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   filter_state.object: envoy.network.application_protocols, envoy.network.upstream_server_name, envoy.network.upstream_subject_alt_names, envoy.router.debug_config
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.resolvers: envoy.ip
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.network.dns_resolver: envoy.network.dns_resolver.apple, envoy.network.dns_resolver.cares
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.access_loggers: envoy.access_loggers.file, envoy.file_access_log
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   network.connection.client: default
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.path.match: envoy.path.match.uri_template.uri_template_matcher
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.wasm.runtime: envoy.wasm.runtime.wamr
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.load_balancing_policies: envoy.load_balancing_policies.round_robin
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.listener_manager_impl: envoy.listener_manager_impl.default, envoy.listener_manager_impl.validation
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.transport_sockets.upstream: envoy.transport_sockets.quic, envoy.transport_sockets.raw_buffer, envoy.transport_sockets.starttls, envoy.transport_sockets.tls, raw_buffer, starttls, tls
+[2026-11-26 16:10:45.639][787586][info][main] [source/server/server.cc:471]   envoy.filters.http.upstream: envoy.filters.http.match_delegate, envoy.filters.http.upstream_codec, envoy.filters.http.wasm
+[2026-11-26 16:10:45.657][787586][warning][misc] [source/common/protobuf/message_validator_impl.cc:23] Deprecated field: type envoy.config.bootstrap.v3.Admin Using deprecated option 'envoy.config.bootstrap.v3.Admin.access_log_path' from file bootstrap.proto. This configuration will be removed from Envoy soon. Please see https://www.envoyproxy.io/docs/envoy/latest/version_history/version_history for details. If continued use of this field is absolutely necessary, see https://www.envoyproxy.io/docs/envoy/latest/configuration/operations/runtime#using-runtime-overrides-for-deprecated-features for how to apply a temporary and highly discouraged override.
+[2026-11-26 16:10:45.657][787586][info][main] [source/server/server.cc:531] HTTP header map info:
+[2026-11-26 16:10:45.658][787586][info][main] [source/server/server.cc:534]   request header map: 520 bytes: :authority,:method,:path,:protocol,:scheme,connection,content-length,content-type,expect,grpc-timeout,keep-alive,proxy-connection,proxy-status,referer,te,transfer-encoding,upgrade,user-agent,via,x-client-trace-id,x-envoy-attempt-count,x-envoy-decorator-operation,x-envoy-downstream-service-cluster,x-envoy-downstream-service-node,x-envoy-expected-rq-timeout-ms,x-envoy-external-address,x-envoy-force-trace,x-envoy-hedge-on-per-try-timeout,x-envoy-internal,x-envoy-ip-tags,x-envoy-is-timeout-retry,x-envoy-max-retries,x-envoy-original-host,x-envoy-original-path,x-envoy-original-url,x-envoy-retriable-header-names,x-envoy-retriable-status-codes,x-envoy-retry-grpc-on,x-envoy-retry-on,x-envoy-upstream-alt-stat-name,x-envoy-upstream-rq-per-try-timeout-ms,x-envoy-upstream-rq-timeout-alt-response,x-envoy-upstream-rq-timeout-ms,x-envoy-upstream-stream-duration-ms,x-forwarded-client-cert,x-forwarded-for,x-forwarded-host,x-forwarded-port,x-forwarded-proto,x-request-id
+[2026-11-26 16:10:45.658][787586][info][main] [source/server/server.cc:534]   request trailer map: 120 bytes: 
+[2026-11-26 16:10:45.658][787586][info][main] [source/server/server.cc:534]   response header map: 320 bytes: :status,connection,content-length,content-type,date,grpc-message,grpc-status,keep-alive,location,proxy-connection,proxy-status,server,transfer-encoding,upgrade,via,x-envoy-attempt-count,x-envoy-decorator-operation,x-envoy-degraded,x-envoy-immediate-health-check-fail,x-envoy-ratelimited,x-envoy-upstream-canary,x-envoy-upstream-healthchecked-cluster,x-envoy-upstream-service-time,x-request-id
+[2026-11-26 16:10:45.658][787586][info][main] [source/server/server.cc:534]   response trailer map: 144 bytes: grpc-message,grpc-status
+[2026-11-26 16:10:45.667][787586][info][main] [source/server/server.cc:942] runtime: {}
+[2026-11-26 16:10:45.668][787586][info][main] [source/server/server.cc:420] Raised file descriptor limits from 1048575 to 9223372036854775807.
+[2026-11-26 16:10:45.668][787586][warning][misc] [source/common/protobuf/message_validator_impl.cc:23] Deprecated field: type envoy.extensions.access_loggers.file.v3.FileAccessLog Using deprecated option 'envoy.extensions.access_loggers.file.v3.FileAccessLog.format' from file file.proto. This configuration will be removed from Envoy soon. Please see https://www.envoyproxy.io/docs/envoy/latest/version_history/version_history for details. If continued use of this field is absolutely necessary, see https://www.envoyproxy.io/docs/envoy/latest/configuration/operations/runtime#using-runtime-overrides-for-deprecated-features for how to apply a temporary and highly discouraged override.
+[2026-11-26 16:10:45.668][787586][info][main] [source/server/server.cc:774] Starting admin HTTP server at 127.0.0.1:19001
+[2026-11-26 16:10:45.669][787586][info][admin] [source/server/admin/admin.cc:65] admin address: 127.0.0.1:19001
+[2026-11-26 16:10:45.670][787586][info][config] [source/server/configuration_impl.cc:181] loading tracing configuration
+[2026-11-26 16:10:45.670][787586][info][config] [source/server/configuration_impl.cc:132] loading 0 static secret(s)
+[2026-11-26 16:10:45.670][787586][info][config] [source/server/configuration_impl.cc:138] loading 1 cluster(s)
+[2026-11-26 16:10:45.675][787586][info][config] [source/server/configuration_impl.cc:148] loading 1 listener(s)
+[2026-11-26 16:10:45.675][787586][warning][config] [source/common/listener_manager/listener_impl.cc:1127] reuse_port was configured for TCP listener 'pg_test' and is being force disabled because Envoy is not running on Linux. See the documentation for more information.
+[19:42:34:939 - 1FF6C9300]: Load type section success.
+
+[19:42:34:939 - 1FF6C9300]: Load import section success.
+
+[19:42:34:940 - 1FF6C9300]: Load function section success.
+
+[19:42:34:940 - 1FF6C9300]: Load table section success.
+
+[19:42:34:940 - 1FF6C9300]: Load memory section success.
+
+[19:42:34:940 - 1FF6C9300]: Load global section success.
+
+[19:42:34:940 - 1FF6C9300]: Load export section success.
+
+[19:42:34:940 - 1FF6C9300]: Load table segment section success.
+
+[19:42:34:940 - 1FF6C9300]: Load code segment section success.
+
+[19:42:34:940 - 1FF6C9300]: Load data segment section success.
+
+[19:42:34:940 - 1FF6C9300]: Ignore custom section [.debug_abbrev].
+[19:42:34:940 - 1FF6C9300]: Ignore custom section [.debug_info].
+[19:42:34:940 - 1FF6C9300]: Ignore custom section [.debug_ranges].
+[19:42:34:940 - 1FF6C9300]: Ignore custom section [.debug_str].
+[19:42:34:940 - 1FF6C9300]: Ignore custom section [.debug_line].
+[19:42:34:940 - 1FF6C9300]: Ignore custom section [.debug_loc].
+[19:42:34:940 - 1FF6C9300]: Ignore custom section [name].
+[19:42:34:940 - 1FF6C9300]: Ignore custom section [producers].
+[19:42:34:940 - 1FF6C9300]: Ignore custom section [target_features].
+[19:42:34:952 - 1FF6C9300]: Load module success.
+
+[19:42:34:952 - 1FF6C9300]: Memory instantiate:
+[19:42:34:952 - 1FF6C9300]:   page bytes: 65536, init pages: 18, max pages: 65536
+[19:42:34:952 - 1FF6C9300]:   heap offset: 1114112, heap size: 64512
+
+[19:42:34:952 - 1FF6C9300]: Memory instantiate success.
+[19:42:34:953 - 1FF6C9300]: Memory instantiate:
+[19:42:34:953 - 1FF6C9300]:   page bytes: 65536, init pages: 18, max pages: 65536
+[19:42:34:953 - 1FF6C9300]:   heap offset: 1114112, heap size: 64512
+
+[19:42:34:953 - 1FF6C9300]: Memory instantiate success.
+[19:42:34:953 - 1FF6C9300]: Memory instantiate:
+[19:42:34:953 - 1FF6C9300]:   page bytes: 65536, init pages: 18, max pages: 65536
+[19:42:34:953 - 1FF6C9300]:   heap offset: 1114112, heap size: 64512
+
+[19:42:34:953 - 1FF6C9300]: Memory instantiate success.
+[2026-11-26 16:10:45.703][787586][info][config] [source/server/configuration_impl.cc:164] loading stats configuration
+[2026-11-26 16:10:45.703][787586][info][runtime] [source/common/runtime/runtime_impl.cc:565] RTDS has finished initialization
+[2026-11-26 16:10:45.703][787586][info][upstream] [source/common/upstream/cluster_manager_impl.cc:252] cm init: all clusters initialized
+[2026-11-26 16:10:45.703][787586][warning][main] [source/server/server.cc:1012] There is no configured limit to the number of allowed active downstream connections. Configure a limit in `envoy.resource_monitors.global_downstream_max_connections` resource monitor.
+[2026-11-26 16:10:45.703][787586][info][main] [source/server/server.cc:1031] all clusters initialized. initializing init manager
+[2026-11-26 16:10:45.703][787586][info][config] [source/common/listener_manager/listener_manager_impl.cc:1012] all dependencies initialized. starting workers
+[19:42:34:956 - 16F903000]: Memory instantiate:
+[19:42:34:956 - 16F903000]:   page bytes: 65536, init pages: 18, max pages: 65536
+[19:42:34:956 - 16F903000]:   heap offset: 1114112, heap size: 64512
+
+[19:42:34:956 - 16F903000]: Memory instantiate success.
+[19:42:34:956 - 16F98F000]: Memory instantiate:
+[19:42:34:956 - 16F98F000]:   page bytes: 65536, init pages: 18, max pages: 65536
+[19:42:34:956 - 16F98F000]:   heap offset: 1114112, heap size: 64512
+
+[19:42:34:956 - 16F98F000]: Memory instantiate success.
+[2026-11-26 16:10:45.705][787586][info][main] [source/server/server.cc:1051] starting main dispatch loop
+[2026-11-26 16:10:47.296][787586][warning][main] [source/server/server.cc:981] caught ENVOY_SIGTERM
+[2026-11-26 16:10:47.296][787586][info][main] [source/server/server.cc:1122] shutting down server instance
+[2026-11-26 16:10:47.297][787586][info][main] [source/server/server.cc:1062] main dispatch loop exited
+[2026-11-26 16:10:47.298][787586][info][main] [source/server/server.cc:1114] exiting

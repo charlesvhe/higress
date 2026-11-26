@@ -1,0 +1,10 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (proxy-wasm-rust-sdk/target/debug/build/proxy-wasm/29162cabd19eac4c/out/proxy_wasm-29162cabd19eac4c)
+
+running 3 tests
+test dispatcher::pg_tests::duplicate_pg_token_preserves_original_callback ... ok
+test dispatcher::pg_tests::callback_is_removed_before_reentrant_registration ... ok
+test dispatcher::pg_tests::context_cleanup_releases_captures_without_holding_map_borrow ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

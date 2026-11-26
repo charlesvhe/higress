@@ -1,0 +1,1903 @@
+diff --git a/bazel/foreign_cc/BUILD b/bazel/foreign_cc/BUILD
+index dc07b53..c8d6756 100644
+--- a/bazel/foreign_cc/BUILD
++++ b/bazel/foreign_cc/BUILD
+@@ -217,10 +217,12 @@ configure_make(
+     env = {
+         "CXXFLAGS": "-fPIC -DU_CHARSET_IS_UTF8=1 -DU_USING_ICU_NAMESPACE=0 -DUCONFIG_ONLY_HTML_CONVERSION=1 -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_BREAK_ITERATION=1 -DUCONFIG_NO_COLLATION=1 -DUCONFIG_NO_FORMATTING=1 -DUCONFIG_NO_TRANSLITERATION=1 -DUCONFIG_NO_REGULAR_EXPRESSIONS=1",
+         "CFLAGS": "-fPIC",
+-        "LIBS": "-l:libstdc++.a",
+         "ICU_DATA_FILTER_FILE": "$(execpath //bazel/foreign_cc:icu_data_filter.json)",
+         "ARFLAGS": "r",
+     } | select({
++        "//bazel:apple": {"LIBS": "-lc++", "AR": "/usr/bin/ar"},
++        "//conditions:default": {"LIBS": "-l:libstdc++.a"},
++    }) | select({
+         "//bazel/foreign_cc:parallel_builds_enabled": {
+             "MAKEFLAGS": "-j ARFLAGS=r",
+         },
+@@ -255,8 +257,11 @@ configure_make(
+ cc_library(
+     name = "unicode_icu",
+     tags = ["skip_on_windows"],
+-    # Can not be used for the core dataplane due to security concerns
+-    visibility = ["//contrib/language/filters/http/source:__pkg__"],
++    # Keep ICU consumers explicit; PostgreSQL uses only bounded RFC4013 password preparation.
++    visibility = [
++        "//contrib/language/filters/http/source:__pkg__",
++        "//source/common/postgres:__pkg__",
++    ],
+     deps = ["unicode_icu_build"],
+ )
+ 
+diff --git a/bazel/foreign_cc/icu_data_filter.json b/bazel/foreign_cc/icu_data_filter.json
+index 2471906..3de8374 100644
+--- a/bazel/foreign_cc/icu_data_filter.json
++++ b/bazel/foreign_cc/icu_data_filter.json
+@@ -1,7 +1,9 @@
+ {
+   "strategy": "additive",
+   "featureFilters": {
+-    "misc": "include"
++    "misc": "include",
++    "stringprep": "include",
++    "normalization": "include",
++    "unicore": "include"
+   }
+ }
+-
+diff --git a/source/extensions/common/wasm/BUILD b/source/extensions/common/wasm/BUILD
+index 579dc3b..e8b69d9 100644
+--- a/source/extensions/common/wasm/BUILD
++++ b/source/extensions/common/wasm/BUILD
+@@ -52,6 +52,7 @@ envoy_cc_library(
+         "@proxy_wasm_cpp_host//:headers",
+         "@proxy_wasm_cpp_sdk//:common_lib",
+     ],
++    higress_deps = ["//source/common/postgres:async_client_lib"],
+     alwayslink = 1,
+ )
+ 
+diff --git a/source/extensions/common/wasm/context.cc b/source/extensions/common/wasm/context.cc
+index 001f592..69ad564 100644
+--- a/source/extensions/common/wasm/context.cc
++++ b/source/extensions/common/wasm/context.cc
+@@ -976,6 +976,11 @@ WasmResult Context::getHeaderMapSize(WasmHeaderMapType type, uint32_t* result) {
+ // Buffer
+ 
+ BufferInterface* Context::getBuffer(WasmBufferType type) {
++#if defined(HIGRESS)
++  if (type == proxy_wasm::kPgCallResponseBuffer) {
++    return pg_in_callback_ ? buffer_.set(pg_call_response_) : nullptr;
++  }
++#endif
+   Envoy::Http::ResponseMessagePtr* response = nullptr;
+   switch (type) {
+   case WasmBufferType::CallData:
+@@ -1171,6 +1176,110 @@ WasmResult Context::httpCall(std::string_view cluster, const Pairs& request_head
+ }
+ 
+ #if defined(HIGRESS)
++bool Context::onConfigure(std::shared_ptr<proxy_wasm::PluginBase> plugin) {
++  // Existing in-flight operations hold their client; new handles belong to this generation.
++  pg_clients_.clear();
++  pg_client_configs_.clear();
++  return ContextBase::onConfigure(std::move(plugin));
++}
++
++WasmResult Context::pgInit(std::string_view cluster, std::string_view config, uint32_t* client) {
++  if (cluster.empty() || cluster.size() > 4096 || config.size() > 16384 ||
++      cluster.find('\0') != std::string_view::npos ||
++      !clusterManager().getThreadLocalCluster(std::string(cluster))) {
++    return WasmResult::BadArgument;
++  }
++  std::string key(cluster);
++  key.push_back('\0');
++  key.append(config);
++  auto existing = pg_client_configs_.find(key);
++  if (existing != pg_client_configs_.end()) {
++    *client = existing->second;
++    return WasmResult::Ok;
++  }
++  if (pg_clients_.size() >= 64 || next_pg_client_id_ == UINT32_MAX) {
++    return WasmResult::InternalFailure;
++  }
++  try {
++    auto parsed = Postgres::Config::parse(config);
++    auto native = Postgres::createClient(std::string(cluster), std::move(parsed), clusterManager(),
++                                         wasm()->dispatcher());
++    *client = ++next_pg_client_id_;
++    pg_clients_.emplace(*client, std::move(native));
++    pg_client_configs_.emplace(std::move(key), *client);
++    return WasmResult::Ok;
++  } catch (const Postgres::Failure&) {
++    return WasmResult::BadArgument;
++  }
++}
++
++WasmResult Context::pgCall(uint32_t client, std::string_view request, uint32_t timeout,
++                           uint32_t* token) {
++  auto* root = rootContext();
++  auto found = root->pg_clients_.find(client);
++  if (destroyed_ || !wasm()->hasPgCallResponse() || found == root->pg_clients_.end() ||
++      timeout == 0 || timeout > INT32_MAX) {
++    return WasmResult::BadArgument;
++  }
++  uint32_t id = 0;
++  try {
++    id = wasm()->nextPgCallId();
++    if (!id)
++      return WasmResult::InternalFailure;
++    auto native = found->second;
++    auto pending = native->send(request, std::chrono::milliseconds(timeout),
++                                [this, id](Postgres::Status status, std::string response) {
++                                  onPgComplete(id, status, std::move(response));
++                                });
++    if (!pending) {
++      wasm()->releasePgCallId(id);
++      return WasmResult::InternalFailure;
++    }
++    pg_requests_.emplace(id, PgPending{std::move(native), std::move(pending)});
++    *token = id;
++    return WasmResult::Ok;
++  } catch (const Postgres::Failure&) {
++    if (id)
++      wasm()->releasePgCallId(id);
++    return WasmResult::BadArgument;
++  }
++}
++
++void Context::cancelPgRequests() {
++  for (auto& entry : pg_requests_) {
++    entry.second.request->cancel();
++    if (wasm() != nullptr)
++      wasm()->releasePgCallId(entry.first);
++  }
++  pg_requests_.clear();
++}
++
++void Context::onPgComplete(uint32_t token, Postgres::Status status, std::string response) {
++  auto found = pg_requests_.find(token);
++  if (found == pg_requests_.end())
++    return;
++  if (destroyed_ || isFailed()) {
++    found->second.request->cancel();
++    pg_requests_.erase(found);
++    if (wasm() != nullptr)
++      wasm()->releasePgCallId(token);
++    return;
++  }
++  // Pending posts completion, so token registration and the original Wasm invocation have finished.
++  auto pending = std::move(found->second);
++  pg_requests_.erase(found);
++  wasm()->releasePgCallId(token);
++  pg_call_response_ = std::move(response);
++  pg_in_callback_ = true;
++  const uint32_t size = pg_call_response_.size();
++  // ContextBase may delete this Context as an after-call action. No access to this after call.
++  wasm()->addAfterVmCallAction([this] {
++    pg_in_callback_ = false;
++    pg_call_response_.clear();
++  });
++  ContextBase::onPgCallResponse(token, static_cast<uint32_t>(status), size);
++}
++
+ WasmResult Context::redisInit(std::string_view cluster, std::string_view username,
+                               std::string_view password, int timeout_milliseconds) {
+   auto cluster_string = std::string(cluster.substr(0, cluster.find('?')));
+@@ -1719,6 +1828,10 @@ WasmResult Context::getMetric(uint32_t metric_id, uint64_t* result_uint64_ptr) {
+ Context::~Context() {
+ #if defined(HIGRESS)
+   releaseActiveStream();
++#endif
++#if defined(HIGRESS)
++  cancelPgRequests();
++  pg_clients_.clear();
+ #endif
+   // Cancel any outstanding requests.
+   for (auto& p : http_request_) {
+@@ -1910,6 +2023,9 @@ void Context::log(const Formatter::HttpFormatterContext& log_context,
+ }
+ 
+ void Context::onDestroy() {
++#if defined(HIGRESS)
++  cancelPgRequests();
++#endif
+ #if defined(HIGRESS)
+   releaseActiveStream();
+ #endif
+diff --git a/source/extensions/common/wasm/context.h b/source/extensions/common/wasm/context.h
+index c022ac9..75d6cfa 100644
+--- a/source/extensions/common/wasm/context.h
++++ b/source/extensions/common/wasm/context.h
+@@ -19,6 +19,9 @@
+ 
+ #include "eval/public/activation.h"
+ #include "include/proxy-wasm/wasm.h"
++#if defined(HIGRESS)
++#include "source/common/postgres/async_client.h"
++#endif
+ 
+ namespace Envoy {
+ namespace Extensions {
+@@ -264,6 +267,12 @@ public:
+                       int timeout_milliseconds, uint32_t* token_ptr) override;
+ 
+ #if defined(HIGRESS)
++  bool onConfigure(std::shared_ptr<proxy_wasm::PluginBase> plugin) override;
++  WasmResult pgInit(std::string_view cluster, std::string_view config, uint32_t* client) override;
++  WasmResult pgCall(uint32_t client, std::string_view request, uint32_t timeout,
++                    uint32_t* token) override;
++  void cancelPgRequests();
++  void onPgComplete(uint32_t token, Postgres::Status status, std::string response);
+   // Redis
+   WasmResult redisInit(std::string_view cluster, std::string_view username,
+                        std::string_view password, int timeout_milliseconds) override;
+@@ -512,6 +521,16 @@ protected:
+   std::map<uint32_t, AsyncClientHandler> http_request_;
+ #if defined(HIGRESS)
+   std::map<uint32_t, RedisAsyncClientHandler> redis_request_;
++  struct PgPending {
++    Postgres::AsyncClientPtr client;
++    Postgres::RequestPtr request;
++  };
++  std::map<uint32_t, Postgres::AsyncClientPtr> pg_clients_;
++  std::map<std::string, uint32_t> pg_client_configs_;
++  std::map<uint32_t, PgPending> pg_requests_;
++  uint32_t next_pg_client_id_{0};
++  std::string pg_call_response_;
++  bool pg_in_callback_{false};
+ #endif
+   std::map<uint32_t, GrpcCallClientHandler> grpc_call_request_;
+   std::map<uint32_t, GrpcStreamClientHandler> grpc_stream_;
+diff --git a/test/extensions/common/wasm/wasm_test.cc b/test/extensions/common/wasm/wasm_test.cc
+index 21de331..d1bb71a 100644
+--- a/test/extensions/common/wasm/wasm_test.cc
++++ b/test/extensions/common/wasm/wasm_test.cc
+@@ -636,6 +636,16 @@ TEST_P(WasmCommonTest, WasmFailState) {
+   EXPECT_TRUE(wasm->wasm()->isHttpCallId(http_call_token2));
+   EXPECT_NE(http_call_token1, http_call_token2);
+ 
++#if defined(HIGRESS)
++  const uint32_t pg_token = wasm->wasm()->nextPgCallId();
++  EXPECT_TRUE(wasm->wasm()->isPgCallId(pg_token));
++  EXPECT_FALSE(wasm->wasm()->isHttpCallId(pg_token));
++  EXPECT_FALSE(wasm->wasm()->isGrpcCallId(pg_token));
++  EXPECT_FALSE(wasm->wasm()->isGrpcStreamId(pg_token));
++  EXPECT_FALSE(wasm->wasm()->isRedisCallId(pg_token));
++  EXPECT_NE(pg_token, wasm->wasm()->nextPgCallId());
++#endif
++
+   auto root_context = static_cast<Context*>(wasm->wasm()->createRootContext(plugin));
+   EXPECT_EQ(root_context->getBuffer(WasmBufferType::HttpCallResponseBody), nullptr);
+   EXPECT_EQ(root_context->getBuffer(WasmBufferType::PluginConfiguration), nullptr);
+diff --git a/source/common/postgres/BUILD b/source/common/postgres/BUILD
+new file mode 100644
+index 0000000..172d8e6
+--- /dev/null
++++ b/source/common/postgres/BUILD
+@@ -0,0 +1,34 @@
++load("//bazel:envoy_build_system.bzl", "envoy_cc_library", "envoy_package")
++
++licenses(["notice"])
++envoy_package()
++
++envoy_cc_library(
++    name = "codec_lib",
++    srcs = ["codec.cc"],
++    hdrs = ["codec.h"],
++    external_deps = ["ssl"],
++    deps = [
++        "//bazel/foreign_cc:unicode_icu",
++        "@com_github_nlohmann_json//:json",
++    ],
++)
++
++envoy_cc_library(
++    name = "async_client_lib",
++    srcs = ["async_client.cc"],
++    hdrs = ["async_client.h"],
++    deps = [
++        ":codec_lib",
++        "//envoy/event:dispatcher_interface",
++        "//envoy/network:connection_interface",
++        "//envoy/network:filter_interface",
++        "//envoy/ssl:connection_interface",
++        "//envoy/stats:stats_interface",
++        "//envoy/upstream:cluster_manager_interface",
++        "//envoy/upstream:resource_manager_interface",
++        "//envoy/upstream:thread_local_cluster_interface",
++        "//envoy/upstream:upstream_interface",
++        "//source/common/buffer:buffer_lib",
++    ],
++)
+diff --git a/source/common/postgres/async_client.cc b/source/common/postgres/async_client.cc
+new file mode 100644
+index 0000000..13e0c07
+--- /dev/null
++++ b/source/common/postgres/async_client.cc
+@@ -0,0 +1,609 @@
++#include "source/common/postgres/async_client.h"
++
++#include <algorithm>
++#include <deque>
++#include <unordered_set>
++
++#include "envoy/network/connection.h"
++#include "envoy/network/filter.h"
++#include "envoy/ssl/connection.h"
++#include "envoy/stats/scope.h"
++#include "envoy/stats/stats.h"
++#include "envoy/upstream/thread_local_cluster.h"
++#include "source/common/buffer/buffer_impl.h"
++
++namespace Envoy {
++namespace Postgres {
++namespace {
++// Hard worker-wide backstops in addition to per-client budgets.
++struct Budget {
++  size_t clients{0}, connections{0}, requests{0}, reserved_bytes{0};
++};
++thread_local Budget budget;
++constexpr size_t MaxClients = 128, MaxConnections = 256, MaxRequests = 2048;
++constexpr size_t MaxReservedBytes = 512 * 1024 * 1024;
++class Client;
++class Session;
++class Pending : public Request, public std::enable_shared_from_this<Pending> {
++public:
++  Pending(std::weak_ptr<Client> owner, Query query, AsyncClient::Callback callback,
++          Event::Dispatcher& dispatcher, size_t reservation)
++      : owner_(owner), query_(std::move(query)), callback_(std::move(callback)),
++        dispatcher_(dispatcher), reservation_(reservation),
++        started_(dispatcher.timeSource().monotonicTime()) {}
++  ~Pending() override;
++  void cancel() override;
++  void finish(Status status, std::string body);
++  std::weak_ptr<Client> owner_;
++  Query query_;
++  AsyncClient::Callback callback_;
++  Event::Dispatcher& dispatcher_;
++  Event::TimerPtr timer_;
++  std::weak_ptr<Session> session_;
++  bool done_{false}, cancelled_{false}, queued_{true};
++  size_t reservation_;
++  MonotonicTime started_;
++};
++class Session : public Network::ReadFilter,
++                public Network::ConnectionCallbacks,
++                public std::enable_shared_from_this<Session> {
++public:
++  enum class State { Connecting, SslReply, Authenticating, Ready, Querying, Resetting, Closed };
++  Session(std::weak_ptr<Client> client, const Config& config, Event::Dispatcher& dispatcher,
++          Stats::ScopeSharedPtr stats)
++      : client_(client), config_(config), dispatcher_(dispatcher), decoder_(16384), result_(config),
++        stats_(std::move(stats)) {}
++  ~Session() override;
++  void connect(Upstream::ThreadLocalCluster& cluster);
++  void assign(const std::shared_ptr<Pending>& request);
++  void close();
++  void fail(const Failure& error);
++  bool usable(Upstream::ThreadLocalCluster& cluster) const;
++  void onEvent(Network::ConnectionEvent event) override;
++  void onAboveWriteBufferHighWatermark() override {}
++  void onBelowWriteBufferLowWatermark() override {}
++  void initializeReadFilterCallbacks(Network::ReadFilterCallbacks&) override {}
++  Network::FilterStatus onNewConnection() override { return Network::FilterStatus::Continue; }
++  Network::FilterStatus onData(Buffer::Instance& data, bool end_stream) override;
++  void process(char type, const std::string& body);
++  void send(const std::string& data);
++  void execute();
++  void idle();
++  std::weak_ptr<Client> client_;
++  const Config config_;
++  Event::Dispatcher& dispatcher_;
++  Network::ClientConnectionPtr connection_;
++  Upstream::HostDescriptionConstSharedPtr host_;
++  Upstream::ClusterInfoConstSharedPtr cluster_info_;
++  Upstream::ResourceAutoIncDecPtr connection_resource_;
++  Event::TimerPtr connect_timer_, idle_timer_;
++  State state_{State::Connecting};
++  Decoder decoder_;
++  Result result_;
++  Scram scram_;
++  bool authenticated_{false}, scram_used_{false}, reset_complete_{false}, counted_{false};
++  std::optional<Failure> query_error_;
++  std::string response_;
++  std::shared_ptr<Pending> request_;
++  Stats::ScopeSharedPtr stats_;
++};
++class Client : public AsyncClient, public std::enable_shared_from_this<Client> {
++public:
++  Client(std::string cluster, Config config, Upstream::ClusterManager& manager,
++         Event::Dispatcher& dispatcher)
++      : cluster_(std::move(cluster)), config_(std::move(config)), manager_(manager),
++        dispatcher_(dispatcher) {
++    auto* native = manager_.getThreadLocalCluster(cluster_);
++    if (!native)
++      throw Failure(Status::NetworkError, "PostgreSQL cluster unavailable");
++    stats_ = native->info()->statsScope().createScope("wasm_pg.");
++    ++budget.clients;
++  }
++  ~Client() override {
++    shutdown();
++    --budget.clients;
++  }
++  RequestPtr send(std::string_view data, std::chrono::milliseconds timeout,
++                  Callback callback) override;
++  void shutdown() override;
++  void pump();
++  void completed(Pending& request, Status status);
++  void schedule() {
++    if (scheduled_ || stopped_)
++      return;
++    scheduled_ = true;
++    dispatcher_.post([weak = weak_from_this()] {
++      if (auto self = weak.lock()) {
++        self->scheduled_ = false;
++        self->pump();
++      }
++    });
++  }
++  std::string cluster_;
++  Config config_;
++  Upstream::ClusterManager& manager_;
++  Event::Dispatcher& dispatcher_;
++  std::deque<std::shared_ptr<Pending>> pending_;
++  std::vector<std::shared_ptr<Session>> sessions_;
++  Stats::ScopeSharedPtr stats_;
++  size_t active_{0};
++  Event::TimerPtr retry_timer_;
++  bool stopped_{false}, scheduled_{false};
++};
++
++Pending::~Pending() {
++  if (reservation_)
++    budget.reserved_bytes -= reservation_;
++}
++void Pending::cancel() {
++  cancelled_ = true;
++  callback_ = nullptr;
++  if (done_)
++    return;
++  if (auto session = session_.lock())
++    session->close();
++  finish(Status::NetworkError, "");
++}
++void Pending::finish(Status status, std::string body) {
++  if (done_)
++    return;
++  done_ = true;
++  if (timer_)
++    timer_->disableTimer();
++  if (auto owner = owner_.lock())
++    owner->completed(*this, status);
++  if (cancelled_)
++    return;
++  auto self = shared_from_this();
++  dispatcher_.post([self, status, body = std::move(body)]() mutable {
++    if (auto owner = self->owner_.lock();
++        owner && !owner->stopped_ && !self->cancelled_ && self->callback_) {
++      auto callback = std::move(self->callback_);
++      callback(status, std::move(body));
++    }
++  });
++}
++RequestPtr Client::send(std::string_view data, std::chrono::milliseconds timeout,
++                        Callback callback) {
++  auto query = Query::parse(data, config_.max_request_bytes);
++  // Reserve for JSON + protocol + escaped values + transient callback copies.
++  size_t reservation =
++      16ULL * config_.max_response_bytes + 4ULL * config_.max_request_bytes + 65536;
++  if (stopped_ || budget.requests >= MaxRequests ||
++      budget.reserved_bytes + reservation > MaxReservedBytes ||
++      pending_.size() >= config_.max_pending_requests) {
++    stats_->counterFromString("rejected").inc();
++    return nullptr;
++  }
++  auto request = std::make_shared<Pending>(weak_from_this(), std::move(query), std::move(callback),
++                                           dispatcher_, reservation);
++  budget.reserved_bytes += reservation;
++  ++budget.requests;
++  ++active_;
++  stats_->counterFromString("requests").inc();
++  stats_->gaugeFromString("active", Stats::Gauge::ImportMode::Accumulate).inc();
++  stats_->gaugeFromString("pending", Stats::Gauge::ImportMode::Accumulate).inc();
++  request->timer_ = dispatcher_.createTimer([weak = std::weak_ptr<Pending>(request)] {
++    if (auto request = weak.lock()) {
++      if (request->done_)
++        return;
++      if (auto session = request->session_.lock())
++        session->close();
++      request->finish(Status::Timeout, errorEnvelope(Failure(
++                                           Status::Timeout, "PostgreSQL query deadline exceeded")));
++    }
++  });
++  request->timer_->enableTimer(timeout);
++  pending_.push_back(request);
++  schedule();
++  return request;
++}
++void Client::completed(Pending& request, Status status) {
++  --active_;
++  --budget.requests;
++  stats_->gaugeFromString("active", Stats::Gauge::ImportMode::Accumulate).dec();
++  if (request.queued_)
++    stats_->gaugeFromString("pending", Stats::Gauge::ImportMode::Accumulate).dec();
++  static const char* names[] = {"success",           "database_error",       "network_error",
++                                "timeout",           "authentication_error", "protocol_error",
++                                "resource_exhausted"};
++  stats_->counterFromString(request.cancelled_ ? "cancelled" : names[static_cast<uint32_t>(status)])
++      .inc();
++  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
++                     dispatcher_.timeSource().monotonicTime() - request.started_)
++                     .count();
++  stats_->histogramFromString("duration_ms", Stats::Histogram::Unit::Milliseconds)
++      .recordValue(elapsed);
++  pending_.erase(std::remove_if(pending_.begin(), pending_.end(),
++                                [&request](const auto& p) { return p.get() == &request; }),
++                 pending_.end());
++  schedule();
++}
++void Client::shutdown() {
++  if (stopped_)
++    return;
++  stopped_ = true;
++  if (retry_timer_)
++    retry_timer_->disableTimer();
++  auto pending = std::move(pending_);
++  for (auto& request : pending)
++    request->cancel();
++  for (auto& session : sessions_) {
++    if (session->request_)
++      session->request_->cancel();
++    session->close();
++  }
++  sessions_.clear();
++}
++void Client::pump() {
++  if (stopped_)
++    return;
++  auto* cluster = manager_.getThreadLocalCluster(cluster_);
++  for (auto& session : sessions_) {
++    if (session->state_ != Session::State::Closed && (!cluster || !session->usable(*cluster))) {
++      session->fail(Failure(Status::NetworkError, "PostgreSQL cluster or endpoint changed"));
++    }
++  }
++  sessions_.erase(std::remove_if(sessions_.begin(), sessions_.end(),
++                                 [](const auto& s) { return s->state_ == Session::State::Closed; }),
++                  sessions_.end());
++  while (!pending_.empty()) {
++    auto request = pending_.front();
++    if (request->done_) {
++      pending_.pop_front();
++      continue;
++    }
++    if (!cluster) {
++      request->finish(
++          Status::NetworkError,
++          errorEnvelope(Failure(Status::NetworkError, "PostgreSQL cluster unavailable")));
++      continue;
++    }
++    auto ready = std::find_if(sessions_.begin(), sessions_.end(),
++                              [](const auto& s) { return s->state_ == Session::State::Ready; });
++    if (ready != sessions_.end()) {
++      pending_.pop_front();
++      request->queued_ = false;
++      stats_->gaugeFromString("pending", Stats::Gauge::ImportMode::Accumulate).dec();
++      (*ready)->assign(request);
++      continue;
++    }
++    if (sessions_.size() >= config_.max_connections || budget.connections >= MaxConnections) {
++      if (!retry_timer_)
++        retry_timer_ = dispatcher_.createTimer([weak = weak_from_this()] {
++          if (auto self = weak.lock())
++            self->schedule();
++        });
++      retry_timer_->enableTimer(std::chrono::milliseconds(5));
++      break;
++    }
++    pending_.pop_front();
++    request->queued_ = false;
++    stats_->gaugeFromString("pending", Stats::Gauge::ImportMode::Accumulate).dec();
++    auto session = std::make_shared<Session>(weak_from_this(), config_, dispatcher_, stats_);
++    sessions_.push_back(session);
++    session->request_ = request;
++    request->session_ = session;
++    try {
++      session->connect(*cluster);
++    } catch (const Failure& error) {
++      session->fail(error);
++    }
++  }
++}
++Session::~Session() { close(); }
++bool Session::usable(Upstream::ThreadLocalCluster& cluster) const {
++  if (cluster.info() != cluster_info_ || !host_)
++    return false;
++  for (const auto& set : cluster.prioritySet().hostSetsPerPriority()) {
++    for (const auto& host : set->hosts())
++      if (host.get() == host_.get())
++        return true;
++  }
++  return false;
++}
++void Session::connect(Upstream::ThreadLocalCluster& cluster) {
++  cluster_info_ = cluster.info();
++  auto& resources =
++      cluster_info_->resourceManager(Upstream::ResourcePriority::Default).connections();
++  if (!resources.canCreate())
++    throw Failure(Status::ResourceExhausted, "PostgreSQL cluster connection limit exceeded");
++  auto result = cluster.tcpConn(nullptr);
++  connection_ = std::move(result.connection_);
++  host_ = std::move(result.host_description_);
++  if (!connection_)
++    throw Failure(Status::NetworkError, "PostgreSQL has no available endpoint");
++  connection_resource_ = std::make_unique<Upstream::ResourceAutoIncDec>(resources);
++  ++budget.connections;
++  counted_ = true;
++  stats_->gaugeFromString("connections", Stats::Gauge::ImportMode::Accumulate).inc();
++  connection_->setBufferLimits(std::max<uint32_t>(config_.max_response_bytes, 16384));
++  connection_->noDelay(true);
++  connection_->addReadFilter(shared_from_this());
++  connection_->addConnectionCallbacks(*this);
++  connect_timer_ = dispatcher_.createTimer([weak = weak_from_this()] {
++    if (auto self = weak.lock())
++      self->fail(Failure(Status::Timeout, "PostgreSQL connection deadline exceeded"));
++  });
++  connect_timer_->enableTimer(std::chrono::milliseconds(config_.connect_timeout_ms));
++  connection_->connect();
++}
++void Session::close() {
++  state_ = State::Closed;
++  if (connect_timer_)
++    connect_timer_->disableTimer();
++  if (idle_timer_)
++    idle_timer_->disableTimer();
++  if (connection_) {
++    connection_->removeConnectionCallbacks(*this);
++    connection_->close(Network::ConnectionCloseType::NoFlush);
++    dispatcher_.deferredDelete(std::move(connection_));
++  }
++  connection_resource_.reset();
++  if (counted_) {
++    --budget.connections;
++    stats_->gaugeFromString("connections", Stats::Gauge::ImportMode::Accumulate).dec();
++    counted_ = false;
++  }
++  if (auto client = client_.lock())
++    client->schedule();
++}
++void Session::fail(const Failure& error) {
++  auto keep_alive = shared_from_this();
++  close();
++  auto request = std::move(request_);
++  if (request)
++    request->finish(error.status, errorEnvelope(error));
++}
++void Session::send(const std::string& data) {
++  if (!connection_)
++    throw Failure(Status::NetworkError, "PostgreSQL connection closed");
++  Buffer::OwnedImpl buffer(data);
++  connection_->write(buffer, false);
++}
++void Session::onEvent(Network::ConnectionEvent event) {
++  auto keep_alive = shared_from_this();
++  if (state_ == State::Closed)
++    return;
++  try {
++    if (event == Network::ConnectionEvent::Connected) {
++      if (state_ != State::Connecting)
++        return;
++      if (config_.tls_mode == "require") {
++        state_ = State::SslReply;
++        send(sslRequest());
++      } else {
++        state_ = State::Authenticating;
++        send(startup(config_));
++      }
++    } else if (event == Network::ConnectionEvent::RemoteClose ||
++               event == Network::ConnectionEvent::LocalClose) {
++      fail(Failure(Status::NetworkError, "PostgreSQL connection closed"));
++    }
++  } catch (const Failure& error) {
++    fail(error);
++  }
++}
++Network::FilterStatus Session::onData(Buffer::Instance& data, bool end_stream) {
++  auto keep_alive = shared_from_this();
++  try {
++    if (state_ == State::Closed) {
++      data.drain(data.length());
++      return Network::FilterStatus::StopIteration;
++    }
++    if (state_ == State::SslReply && data.length()) {
++      char reply;
++      data.copyOut(0, 1, &reply);
++      data.drain(1);
++      if (reply != 'S' || data.length() != 0 || !connection_->startSecureTransport())
++        throw Failure(Status::AuthenticationError,
++                      "PostgreSQL TLS negotiation failed; configure a StartTLS cluster");
++      state_ = State::Authenticating;
++      send(startup(config_));
++    }
++    while (data.length()) {
++      size_t size = std::min<uint64_t>(data.length(), 4096);
++      std::string chunk(size, '\0');
++      data.copyOut(0, size, chunk.data());
++      data.drain(size);
++      decoder_.append(chunk);
++      char type;
++      std::string body;
++      while (decoder_.next(type, body)) {
++        process(type, body);
++        if (state_ == State::Closed)
++          break;
++      }
++      if (state_ == State::Closed) {
++        data.drain(data.length());
++        break;
++      }
++    }
++    if (end_stream && state_ != State::Closed)
++      fail(Failure(Status::NetworkError, "PostgreSQL stream ended"));
++  } catch (const Failure& error) {
++    fail(error);
++  } catch (const Json::exception&) {
++    fail(Failure(Status::ProtocolError, "invalid UTF8 PostgreSQL response"));
++  }
++  return Network::FilterStatus::StopIteration;
++}
++void Session::execute() {
++  if (!request_ || request_->done_) {
++    close();
++    return;
++  }
++  decoder_.setLimit(std::max<uint32_t>(config_.max_response_bytes, 16384));
++  state_ = State::Querying;
++  result_ = Result(config_);
++  query_error_.reset();
++  send(queryMessages(request_->query_));
++}
++void Session::assign(const std::shared_ptr<Pending>& request) {
++  if (idle_timer_)
++    idle_timer_->disableTimer();
++  request_ = request;
++  request->session_ = shared_from_this();
++  try {
++    execute();
++  } catch (const Failure& error) {
++    fail(error);
++  }
++}
++void Session::idle() {
++  decoder_.setLimit(16384);
++  state_ = State::Ready;
++  if (!idle_timer_)
++    idle_timer_ = dispatcher_.createTimer([weak = weak_from_this()] {
++      if (auto self = weak.lock())
++        self->close();
++    });
++  idle_timer_->enableTimer(std::chrono::milliseconds(config_.idle_timeout_ms));
++  if (auto client = client_.lock())
++    client->schedule();
++}
++void Session::process(char type, const std::string& body) {
++  if (type == 'N')
++    return;
++  if (type == 'S') {
++    Reader r(body);
++    auto key = r.string();
++    auto value = r.string();
++    r.end();
++    if (key == "client_encoding" && value != "UTF8")
++      throw Failure(Status::ProtocolError, "PostgreSQL changed client encoding");
++    return;
++  }
++  if (state_ == State::Authenticating) {
++    if (config_.tls_mode == "require") {
++      auto ssl = connection_->ssl();
++      if (!ssl || !ssl->peerCertificateValidated())
++        throw Failure(Status::AuthenticationError,
++                      "PostgreSQL TLS peer certificate was not validated");
++    }
++    if (type == 'E')
++      throw databaseError(body, true);
++    if (type == 'R') {
++      Reader r(body);
++      auto method = r.u32();
++      switch (method) {
++      case 0:
++        r.end();
++        if (scram_used_ && !scram_.verified())
++          throw Failure(Status::AuthenticationError, "unverified SCRAM exchange");
++        authenticated_ = true;
++        return;
++      case 3:
++        r.end();
++        if (!connection_->ssl() || !connection_->ssl()->peerCertificateValidated())
++          throw Failure(Status::AuthenticationError,
++                        "cleartext password authentication requires validated TLS");
++        send(passwordMessage(config_.password));
++        return;
++      case 5: {
++        auto salt = r.bytes(4);
++        r.end();
++        send(passwordMessage(md5Password(config_, salt)));
++        return;
++      }
++      case 10:
++        scram_used_ = true;
++        send(scram_.start(r.bytes(r.remaining())));
++        return;
++      case 11:
++        send(scram_.continueWith(r.bytes(r.remaining()), config_.password));
++        return;
++      case 12:
++        scram_.finish(r.bytes(r.remaining()));
++        return;
++      default:
++        throw Failure(Status::AuthenticationError, "unsupported PostgreSQL authentication method");
++      }
++    }
++    if (type == 'K') {
++      Reader r(body);
++      r.u32();
++      r.u32();
++      r.end();
++      return;
++    }
++    if (type == 'Z' && authenticated_ && body == "I") {
++      connect_timer_->disableTimer();
++      execute();
++      return;
++    }
++    throw Failure(Status::ProtocolError, "unexpected PostgreSQL startup message");
++  }
++  if (state_ == State::Querying) {
++    if (type == 'E') {
++      query_error_ = databaseError(body, false);
++      return;
++    }
++    if (type == 'Z') {
++      if (body != "I")
++        throw Failure(Status::ProtocolError,
++                      "PostgreSQL session is not idle; transaction API is unsupported");
++      if (!query_error_)
++        response_ = result_.encode();
++      state_ = State::Resetting;
++      reset_complete_ = false;
++      send(discardAll());
++      return;
++    }
++    if (query_error_)
++      throw Failure(Status::ProtocolError, "unexpected message after PostgreSQL error");
++    if (type == '1' || type == '2' || type == 'n') {
++      Reader(body).end();
++      return;
++    }
++    if (type == 'T') {
++      result_.columns(body);
++      return;
++    }
++    if (type == 'D') {
++      result_.row(body);
++      return;
++    }
++    if (type == 'C') {
++      result_.command(body);
++      return;
++    }
++    throw Failure(Status::ProtocolError,
++                  "unsupported PostgreSQL query response (COPY/cursors are not supported)");
++  }
++  if (state_ == State::Resetting) {
++    if (type == 'E')
++      throw Failure(Status::ProtocolError, "PostgreSQL session reset failed");
++    if (type == 'C') {
++      if (reset_complete_ || body != std::string("DISCARD ALL\0", 12))
++        throw Failure(Status::ProtocolError, "unexpected PostgreSQL reset response");
++      reset_complete_ = true;
++      return;
++    }
++    if (type == 'Z' && body == "I" && reset_complete_) {
++      auto error = std::move(query_error_);
++      auto response = std::move(response_);
++      result_ = Result(config_);
++      query_error_.reset();
++      response_.clear();
++      idle();
++      auto request = std::move(request_);
++      if (error)
++        request->finish(error->status, errorEnvelope(*error));
++      else
++        request->finish(Status::Ok, std::move(response));
++      return;
++    }
++    throw Failure(Status::ProtocolError, "unexpected PostgreSQL reset message");
++  }
++  throw Failure(Status::ProtocolError, "unsolicited PostgreSQL message");
++}
++} // namespace
++AsyncClientPtr createClient(std::string cluster, Config config, Upstream::ClusterManager& manager,
++                            Event::Dispatcher& dispatcher) {
++  if (budget.clients >= MaxClients)
++    throw Failure(Status::ResourceExhausted, "PostgreSQL client limit exceeded");
++  return std::make_shared<Client>(std::move(cluster), std::move(config), manager, dispatcher);
++}
++} // namespace Postgres
++} // namespace Envoy
+diff --git a/source/common/postgres/async_client.h b/source/common/postgres/async_client.h
+new file mode 100644
+index 0000000..ddb54a7
+--- /dev/null
++++ b/source/common/postgres/async_client.h
+@@ -0,0 +1,31 @@
++#pragma once
++
++#include <functional>
++#include <memory>
++#include <string>
++
++#include "envoy/event/dispatcher.h"
++#include "envoy/upstream/cluster_manager.h"
++#include "source/common/postgres/codec.h"
++
++namespace Envoy {
++namespace Postgres {
++class Request {
++public:
++  virtual ~Request() = default;
++  virtual void cancel() = 0;
++};
++using RequestPtr = std::shared_ptr<Request>;
++class AsyncClient {
++public:
++  using Callback = std::function<void(Status, std::string)>;
++  virtual ~AsyncClient() = default;
++  virtual RequestPtr send(std::string_view request, std::chrono::milliseconds timeout,
++                          Callback callback) = 0;
++  virtual void shutdown() = 0;
++};
++using AsyncClientPtr = std::shared_ptr<AsyncClient>;
++AsyncClientPtr createClient(std::string cluster, Config config, Upstream::ClusterManager& manager,
++                            Event::Dispatcher& dispatcher);
++} // namespace Postgres
++} // namespace Envoy
+diff --git a/source/common/postgres/codec.cc b/source/common/postgres/codec.cc
+new file mode 100644
+index 0000000..1b7ca89
+--- /dev/null
++++ b/source/common/postgres/codec.cc
+@@ -0,0 +1,527 @@
++#include "source/common/postgres/codec.h"
++
++#include <algorithm>
++#include <array>
++#include <climits>
++#include <map>
++#include <memory>
++
++#include "openssl/crypto.h"
++#include "openssl/evp.h"
++#include "openssl/hmac.h"
++#include "openssl/md5.h"
++#include "openssl/rand.h"
++#include "openssl/sha.h"
++#include "unicode/usprep.h"
++#include "unicode/ustring.h"
++
++namespace Envoy {
++namespace Postgres {
++namespace {
++[[noreturn]] void protocol(const char* message) { throw Failure(Status::ProtocolError, message); }
++bool nul(std::string_view value) { return value.find('\0') != std::string_view::npos; }
++Json parseEnvelope(std::string_view data) {
++  // Bound DOM nesting as well as bytes, including ignored fields from raw host callers.
++  return Json::parse(data, [](int depth, Json::parse_event_t, Json&) {
++    if (depth > 16)
++      protocol("PostgreSQL envelope nesting exceeds supported limit");
++    return true;
++  });
++}
++uint32_t integer(const Json& j, const char* key, uint32_t lo, uint32_t hi) {
++  const auto& value = j.at(key);
++  if (!value.is_number_unsigned() && !value.is_number_integer())
++    protocol("invalid integer configuration");
++  auto number = value.get<int64_t>();
++  if (number < lo || number > hi)
++    protocol("configuration exceeds supported range");
++  return static_cast<uint32_t>(number);
++}
++std::string hex(std::string_view bytes) {
++  static constexpr char digits[] = "0123456789abcdef";
++  std::string result;
++  for (unsigned char c : bytes) {
++    result += digits[c >> 4];
++    result += digits[c & 15];
++  }
++  return result;
++}
++std::string base64(std::string_view bytes) {
++  std::string result(4 * ((bytes.size() + 2) / 3), '\0');
++  auto length = EVP_EncodeBlock(reinterpret_cast<uint8_t*>(result.data()),
++                                reinterpret_cast<const uint8_t*>(bytes.data()), bytes.size());
++  if (length < 0)
++    protocol("base64 encoding failed");
++  result.resize(length);
++  return result;
++}
++std::string unbase64(std::string_view value) {
++  if (value.empty() || value.size() > 4096 || value.size() % 4 != 0)
++    protocol("invalid SCRAM base64");
++  std::string result(value.size(), '\0');
++  int n = EVP_DecodeBlock(reinterpret_cast<uint8_t*>(result.data()),
++                          reinterpret_cast<const uint8_t*>(value.data()), value.size());
++  if (n < 0)
++    protocol("invalid SCRAM base64");
++  if (value.back() == '=')
++    --n;
++  if (value.size() > 1 && value[value.size() - 2] == '=')
++    --n;
++  if (n < 0)
++    protocol("invalid SCRAM base64");
++  result.resize(n);
++  if (base64(result) != value)
++    protocol("noncanonical SCRAM base64");
++  return result;
++}
++std::string sha256(std::string_view value) {
++  std::string result(SHA256_DIGEST_LENGTH, '\0');
++  SHA256(reinterpret_cast<const uint8_t*>(value.data()), value.size(),
++         reinterpret_cast<uint8_t*>(result.data()));
++  return result;
++}
++std::string hmac(std::string_view key, std::string_view value) {
++  std::string result(SHA256_DIGEST_LENGTH, '\0');
++  unsigned int length = 0;
++  if (!HMAC(EVP_sha256(), key.data(), key.size(), reinterpret_cast<const uint8_t*>(value.data()),
++            value.size(), reinterpret_cast<uint8_t*>(result.data()), &length) ||
++      length != result.size()) {
++    protocol("SCRAM HMAC failed");
++  }
++  return result;
++}
++// PostgreSQL uses the original password when SASLprep rejects its contents.
++std::string prepare(std::string_view password) {
++  UErrorCode error = U_ZERO_ERROR;
++  int32_t length = 0;
++  u_strFromUTF8(nullptr, 0, &length, password.data(), password.size(), &error);
++  if (error != U_BUFFER_OVERFLOW_ERROR && U_FAILURE(error))
++    return std::string(password);
++  error = U_ZERO_ERROR;
++  std::vector<UChar> utf16(length + 1);
++  u_strFromUTF8(utf16.data(), utf16.size(), &length, password.data(), password.size(), &error);
++  if (U_FAILURE(error))
++    return std::string(password);
++  std::unique_ptr<UStringPrepProfile, decltype(&usprep_close)> profile(
++      usprep_openByType(USPREP_RFC4013_SASLPREP, &error), &usprep_close);
++  if (U_FAILURE(error))
++    protocol("SASLprep profile unavailable");
++  UParseError parse_error{};
++  std::vector<UChar> output(length * 4 + 32);
++  auto count = usprep_prepare(profile.get(), utf16.data(), length, output.data(), output.size(),
++                              USPREP_DEFAULT, &parse_error, &error);
++  if (error == U_BUFFER_OVERFLOW_ERROR) {
++    output.resize(count + 1);
++    error = U_ZERO_ERROR;
++    count = usprep_prepare(profile.get(), utf16.data(), length, output.data(), output.size(),
++                           USPREP_DEFAULT, &parse_error, &error);
++  }
++  if (U_FAILURE(error))
++    return std::string(password);
++  error = U_ZERO_ERROR;
++  int32_t bytes = 0;
++  u_strToUTF8(nullptr, 0, &bytes, output.data(), count, &error);
++  if (error != U_BUFFER_OVERFLOW_ERROR && U_FAILURE(error))
++    protocol("SASLprep conversion failed");
++  error = U_ZERO_ERROR;
++  std::string normalized(bytes, '\0');
++  u_strToUTF8(normalized.data(), normalized.size(), &bytes, output.data(), count, &error);
++  if (U_FAILURE(error))
++    protocol("SASLprep conversion failed");
++  return normalized;
++}
++std::map<char, std::string> attributes(std::string_view data) {
++  if (data.size() > 8192)
++    protocol("SCRAM message too large");
++  std::map<char, std::string> result;
++  while (!data.empty()) {
++    auto comma = data.find(',');
++    auto part = data.substr(0, comma);
++    if (part.size() < 3 || part[1] != '=' || !result.emplace(part[0], part.substr(2)).second)
++      protocol("invalid SCRAM attributes");
++    if (comma == std::string_view::npos)
++      break;
++    data.remove_prefix(comma + 1);
++    if (data.empty())
++      protocol("empty SCRAM attribute");
++  }
++  if (result.count('m'))
++    protocol("unsupported mandatory SCRAM extension");
++  return result;
++}
++} // namespace
++
++Config Config::parse(std::string_view data) {
++  if (data.size() > 16384)
++    protocol("PostgreSQL configuration too large");
++  try {
++    auto j = parseEnvelope(data);
++    if (integer(j, "version", 1, 1) != 1)
++      protocol("unsupported PG ABI version");
++    Config c;
++    c.username = j.at("username").get<std::string>();
++    c.password = j.at("password").get<std::string>();
++    c.database = j.at("database").get<std::string>();
++    c.tls_mode = j.at("tls_mode").get<std::string>();
++    if (c.username.empty() || c.database.empty() || nul(c.username) || nul(c.database) ||
++        nul(c.password) || (c.tls_mode != "disable" && c.tls_mode != "require"))
++      protocol("invalid PostgreSQL configuration");
++    c.connect_timeout_ms = integer(j, "connect_timeout_ms", 1, INT_MAX);
++    c.max_connections = integer(j, "max_connections", 1, 64);
++    c.max_pending_requests = integer(j, "max_pending_requests", 1, 1024);
++    c.max_rows = integer(j, "max_rows", 1, 100000);
++    c.max_response_bytes = integer(j, "max_response_bytes", 256, 16777216);
++    c.max_request_bytes = integer(j, "max_request_bytes", 64, 1048576);
++    c.idle_timeout_ms = integer(j, "idle_timeout_ms", 1, INT_MAX);
++    return c;
++  } catch (const Json::exception&) {
++    protocol("invalid PostgreSQL configuration envelope");
++  }
++}
++Query Query::parse(std::string_view data, uint32_t limit) {
++  if (data.size() > limit)
++    throw Failure(Status::ResourceExhausted, "query exceeds configured limit");
++  try {
++    const auto j = parseEnvelope(data);
++    integer(j, "version", 1, 1);
++    Query query;
++    query.sql = j.at("sql").get<std::string>();
++    const auto& params = j.at("params");
++    if (query.sql.empty() || nul(query.sql) || !params.is_array() || params.size() > INT16_MAX)
++      protocol("invalid SQL or parameters");
++    for (const auto& p : params) {
++      Param param{integer(p, "type_oid", 0, UINT32_MAX), std::nullopt};
++      if (!p.at("value").is_null()) {
++        param.value = p.at("value").get<std::string>();
++        if (nul(*param.value))
++          protocol("NUL in PostgreSQL parameter");
++      }
++      query.params.push_back(std::move(param));
++    }
++    return query;
++  } catch (const Json::exception&) {
++    protocol("invalid PostgreSQL query envelope");
++  }
++}
++void Decoder::append(std::string_view data) {
++  if (data.size() > limit_ || buffered() > limit_ - data.size())
++    throw Failure(Status::ResourceExhausted, "PostgreSQL input exceeds configured limit");
++  if (offset_) {
++    input_.erase(0, offset_);
++    offset_ = 0;
++  }
++  input_.append(data);
++}
++void Decoder::setLimit(uint32_t limit) {
++  if (buffered() > limit) {
++    throw Failure(Status::ResourceExhausted, "PostgreSQL input exceeds configured limit");
++  }
++  // Release a large previous query buffer before returning an idle connection.
++  std::string remaining = input_.substr(offset_);
++  input_.swap(remaining);
++  offset_ = 0;
++  limit_ = limit;
++}
++
++bool Decoder::next(char& type, std::string& body) {
++  if (buffered() < 5)
++    return false;
++  Reader header(std::string_view(input_).substr(offset_ + 1, 4));
++  uint32_t size = header.u32();
++  if (size < 4)
++    protocol("invalid PostgreSQL message length");
++  if (size > limit_ - 1)
++    throw Failure(Status::ResourceExhausted, "PostgreSQL message exceeds configured limit");
++  if (buffered() < size + 1)
++    return false;
++  type = input_[offset_];
++  body.assign(input_, offset_ + 5, size - 4);
++  offset_ += size + 1;
++  return true;
++}
++uint16_t Reader::u16() {
++  auto b = bytes(2);
++  return (static_cast<uint8_t>(b[0]) << 8) | static_cast<uint8_t>(b[1]);
++}
++uint32_t Reader::u32() {
++  auto b = bytes(4);
++  uint32_t value = 0;
++  for (unsigned char c : b)
++    value = (value << 8) | c;
++  return value;
++}
++std::string_view Reader::bytes(size_t size) {
++  if (size > data_.size())
++    protocol("truncated PostgreSQL message");
++  auto part = data_.substr(0, size);
++  data_.remove_prefix(size);
++  return part;
++}
++std::string Reader::string() {
++  auto size = data_.find('\0');
++  if (size == std::string_view::npos)
++    protocol("unterminated PostgreSQL string");
++  std::string part(data_.substr(0, size));
++  data_.remove_prefix(size + 1);
++  return part;
++}
++void Reader::end() const {
++  if (!data_.empty())
++    protocol("trailing PostgreSQL message data");
++}
++void put16(std::string& data, uint16_t n) {
++  data += static_cast<char>(n >> 8);
++  data += static_cast<char>(n);
++}
++void put32(std::string& data, uint32_t n) {
++  for (int shift = 24; shift >= 0; shift -= 8)
++    data += static_cast<char>(n >> shift);
++}
++std::string message(char type, std::string_view body) {
++  if (body.size() > INT_MAX - 4)
++    protocol("PostgreSQL output too large");
++  std::string data(1, type);
++  put32(data, body.size() + 4);
++  data.append(body);
++  return data;
++}
++std::string startup(const Config& c) {
++  std::string data;
++  put32(data, 196608);
++  for (const auto& pair :
++       std::vector<std::pair<std::string, std::string>>{{"user", c.username},
++                                                        {"database", c.database},
++                                                        {"client_encoding", "UTF8"},
++                                                        {"application_name", "higress-wasm"}}) {
++    data += pair.first;
++    data += '\0';
++    data += pair.second;
++    data += '\0';
++  }
++  data += '\0';
++  std::string length;
++  put32(length, data.size() + 4);
++  return length + data;
++}
++std::string sslRequest() {
++  std::string data;
++  put32(data, 8);
++  put32(data, 80877103);
++  return data;
++}
++std::string queryMessages(const Query& q) {
++  std::string parse(1, '\0');
++  parse += q.sql;
++  parse += '\0';
++  put16(parse, q.params.size());
++  for (const auto& p : q.params)
++    put32(parse, p.oid);
++  std::string bind(2, '\0');
++  put16(bind, 0);
++  put16(bind, q.params.size());
++  for (const auto& p : q.params) {
++    put32(bind, p.value ? p.value->size() : UINT32_MAX);
++    if (p.value)
++      bind += *p.value;
++  }
++  put16(bind, 0);
++  std::string describe("P", 1);
++  describe += '\0';
++  std::string execute(1, '\0');
++  put32(execute, 0);
++  return message('P', parse) + message('B', bind) + message('D', describe) + message('E', execute) +
++         message('S', "");
++}
++std::string discardAll() { return message('Q', std::string("DISCARD ALL\0", 12)); }
++std::string passwordMessage(std::string_view p) {
++  std::string data(p);
++  data += '\0';
++  return message('p', data);
++}
++std::string md5Password(const Config& c, std::string_view salt) {
++  if (salt.size() != 4)
++    protocol("invalid MD5 salt");
++  auto digest = [](std::string_view s) {
++    std::string d(MD5_DIGEST_LENGTH, '\0');
++    MD5(reinterpret_cast<const uint8_t*>(s.data()), s.size(), reinterpret_cast<uint8_t*>(d.data()));
++    return hex(d);
++  };
++  return "md5" + digest(digest(c.password + c.username) + std::string(salt));
++}
++std::string errorEnvelope(const Failure& failure) {
++  Json j{{"version", 1}, {"message", failure.what()}, {"sqlstate", nullptr}};
++  if (!failure.sqlstate.empty())
++    j["sqlstate"] = failure.sqlstate;
++  return j.dump(-1, ' ', false, Json::error_handler_t::replace);
++}
++Failure databaseError(std::string_view body, bool auth) {
++  Reader reader(body);
++  std::string code;
++  bool ended = false;
++  while (reader.remaining()) {
++    char key = reader.bytes(1)[0];
++    if (!key) {
++      ended = true;
++      break;
++    }
++    auto value = reader.string();
++    if (key == 'C')
++      code = value;
++  }
++  reader.end();
++  if (!ended)
++    protocol("invalid PostgreSQL ErrorResponse");
++  if (code.size() != 5 || !std::all_of(code.begin(), code.end(), [](unsigned char c) {
++        return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z');
++      })) {
++    protocol("invalid PostgreSQL SQLSTATE");
++  }
++  // SQL diagnostics may echo SQL/parameters/credentials: expose a stable message and SQLSTATE.
++  return Failure(auth ? Status::AuthenticationError : Status::DatabaseError,
++                 auth ? "PostgreSQL authentication failed" : "PostgreSQL query failed", code);
++}
++std::string Scram::start(std::string_view mechanisms) {
++  if (started_)
++    protocol("repeated SASL authentication");
++  Reader r(mechanisms);
++  bool supported = false, ended = false;
++  while (r.remaining()) {
++    auto method = r.string();
++    if (method.empty()) {
++      ended = true;
++      break;
++    }
++    if (method == "SCRAM-SHA-256")
++      supported = true;
++  }
++  r.end();
++  if (!ended || !supported)
++    throw Failure(Status::AuthenticationError, "unsupported PostgreSQL SASL mechanism");
++  std::array<uint8_t, 24> random{};
++  if (RAND_bytes(random.data(), random.size()) != 1)
++    protocol("SCRAM random generation failed");
++  nonce_ = base64({reinterpret_cast<const char*>(random.data()), random.size()});
++  first_bare_ = "n=,r=" + nonce_;
++  started_ = true;
++  auto first = "n,," + first_bare_;
++  std::string data("SCRAM-SHA-256\0", 14);
++  put32(data, first.size());
++  data += first;
++  return message('p', data);
++}
++std::string Scram::continueWith(std::string_view server, std::string_view password) {
++  if (!started_ || continued_)
++    protocol("unexpected SCRAM continue");
++  auto a = attributes(server);
++  if (!a.count('r') || !a.count('s') || !a.count('i') || a['r'].size() <= nonce_.size() ||
++      a['r'].compare(0, nonce_.size(), nonce_) != 0)
++    protocol("invalid SCRAM server nonce");
++  uint32_t iterations = 0;
++  for (unsigned char c : a['i']) {
++    if (c < '0' || c > '9' || iterations > 100000 / 10)
++      protocol("invalid SCRAM iteration count");
++    iterations = iterations * 10 + c - '0';
++  }
++  if (iterations == 0 || iterations > 100000)
++    protocol("SCRAM iteration count out of range");
++  auto salt = unbase64(a['s']);
++  auto normalized = prepare(password);
++  std::string salted(32, '\0');
++  if (PKCS5_PBKDF2_HMAC(normalized.data(), normalized.size(),
++                        reinterpret_cast<const uint8_t*>(salt.data()), salt.size(), iterations,
++                        EVP_sha256(), salted.size(),
++                        reinterpret_cast<uint8_t*>(salted.data())) != 1)
++    protocol("SCRAM key derivation failed");
++  auto final = "c=biws,r=" + a['r'];
++  auto auth = first_bare_ + "," + std::string(server) + "," + final;
++  auto client_key = hmac(salted, "Client Key");
++  auto signature = hmac(sha256(client_key), auth);
++  auto server_key = hmac(salted, "Server Key");
++  expected_server_ = hmac(server_key, auth);
++  for (size_t i = 0; i < client_key.size(); ++i)
++    client_key[i] ^= signature[i];
++  continued_ = true;
++  return message('p', final + ",p=" + base64(client_key));
++}
++void Scram::finish(std::string_view server) {
++  if (!continued_ || verified_)
++    protocol("unexpected SCRAM final");
++  auto a = attributes(server);
++  if (a.count('e'))
++    throw Failure(Status::AuthenticationError, "SCRAM authentication rejected");
++  if (!a.count('v'))
++    protocol("missing SCRAM server signature");
++  auto actual = unbase64(a['v']);
++  if (actual.size() != expected_server_.size() ||
++      CRYPTO_memcmp(actual.data(), expected_server_.data(), actual.size()) != 0)
++    throw Failure(Status::AuthenticationError, "invalid SCRAM server signature");
++  verified_ = true;
++}
++void Result::columns(std::string_view body) {
++  if (has_columns_ || completed_)
++    protocol("unexpected RowDescription");
++  Reader reader(body);
++  auto count = reader.u16();
++  for (unsigned i = 0; i < count; ++i) {
++    auto name = reader.string();
++    reader.u32();
++    reader.u16();
++    auto oid = reader.u32();
++    reader.u16();
++    reader.u32();
++    auto format = reader.u16();
++    if (format != 0)
++      protocol("binary results are not supported");
++    Json column{{"name", name}, {"type_oid", oid}};
++    encoded_size_ += column.dump().size() + 1;
++    if (encoded_size_ > limit_)
++      throw Failure(Status::ResourceExhausted, "PostgreSQL result exceeds configured limit");
++    columns_.push_back(std::move(column));
++  }
++  reader.end();
++  has_columns_ = true;
++}
++void Result::row(std::string_view body) {
++  if (!has_columns_ || completed_)
++    protocol("unexpected DataRow");
++  if (rows_.size() >= max_rows_)
++    throw Failure(Status::ResourceExhausted, "PostgreSQL row limit exceeded");
++  Reader reader(body);
++  auto count = reader.u16();
++  if (count != columns_.size())
++    protocol("PostgreSQL column count mismatch");
++  Json row = Json::array();
++  for (unsigned i = 0; i < count; ++i) {
++    auto size = reader.u32();
++    if (size == UINT32_MAX)
++      row.push_back(nullptr);
++    else
++      row.push_back(std::string(reader.bytes(size)));
++  }
++  reader.end();
++  encoded_size_ += row.dump().size() + 1;
++  if (encoded_size_ > limit_)
++    throw Failure(Status::ResourceExhausted, "PostgreSQL result exceeds configured limit");
++  rows_.push_back(std::move(row));
++}
++void Result::command(std::string_view body) {
++  if (completed_)
++    protocol("multiple CommandComplete messages");
++  Reader reader(body);
++  command_ = reader.string();
++  reader.end();
++  completed_ = true;
++}
++std::string Result::encode() const {
++  if (!completed_)
++    protocol("missing CommandComplete");
++  auto data =
++      Json{{"version", 1}, {"columns", columns_}, {"rows", rows_}, {"command_tag", command_}}
++          .dump();
++  if (data.size() > limit_)
++    throw Failure(Status::ResourceExhausted, "PostgreSQL result exceeds configured limit");
++  return data;
++}
++
++} // namespace Postgres
++} // namespace Envoy
+diff --git a/source/common/postgres/codec.h b/source/common/postgres/codec.h
+new file mode 100644
+index 0000000..f870a5b
+--- /dev/null
++++ b/source/common/postgres/codec.h
+@@ -0,0 +1,120 @@
++#pragma once
++
++#include <cstdint>
++#include <optional>
++#include <stdexcept>
++#include <string>
++#include <string_view>
++#include <vector>
++
++#include "include/nlohmann/json.hpp"
++
++namespace Envoy {
++namespace Postgres {
++
++using Json = nlohmann::json;
++enum class Status : uint32_t {
++  Ok = 0,
++  DatabaseError = 1,
++  NetworkError = 2,
++  Timeout = 3,
++  AuthenticationError = 4,
++  ProtocolError = 5,
++  ResourceExhausted = 6
++};
++struct Failure : public std::runtime_error {
++  Failure(Status status, const std::string& message, std::string sqlstate = {})
++      : std::runtime_error(message), status(status), sqlstate(std::move(sqlstate)) {}
++  Status status;
++  std::string sqlstate;
++};
++struct Config {
++  std::string username, password, database, tls_mode;
++  uint32_t connect_timeout_ms, max_connections, max_pending_requests;
++  uint32_t max_rows, max_response_bytes, max_request_bytes, idle_timeout_ms;
++  static Config parse(std::string_view data);
++};
++struct Param {
++  uint32_t oid;
++  std::optional<std::string> value;
++};
++struct Query {
++  std::string sql;
++  std::vector<Param> params;
++  static Query parse(std::string_view data, uint32_t limit);
++};
++
++// Bounded incremental decoder; each emitted message excludes its type/length header.
++class Decoder {
++public:
++  explicit Decoder(uint32_t limit) : limit_(limit) {}
++  void append(std::string_view data);
++  void setLimit(uint32_t limit);
++  bool next(char& type, std::string& body);
++  size_t buffered() const { return input_.size() - offset_; }
++
++private:
++  std::string input_;
++  size_t offset_{0};
++  uint32_t limit_;
++};
++
++class Reader {
++public:
++  explicit Reader(std::string_view data) : data_(data) {}
++  uint16_t u16();
++  uint32_t u32();
++  std::string_view bytes(size_t size);
++  std::string string();
++  void end() const;
++  size_t remaining() const { return data_.size(); }
++
++private:
++  std::string_view data_;
++};
++void put16(std::string& data, uint16_t value);
++void put32(std::string& data, uint32_t value);
++std::string message(char type, std::string_view body);
++std::string startup(const Config& config);
++std::string sslRequest();
++std::string queryMessages(const Query& query);
++std::string discardAll();
++std::string passwordMessage(std::string_view password);
++std::string md5Password(const Config& config, std::string_view salt);
++std::string errorEnvelope(const Failure& failure);
++Failure databaseError(std::string_view body, bool authenticating);
++
++// SCRAM-SHA-256 with SASLprep, bounded PBKDF2 and constant-time server verification.
++class Scram {
++public:
++  std::string start(std::string_view mechanisms);
++  std::string continueWith(std::string_view server_first, std::string_view password);
++  void finish(std::string_view server_final);
++  bool verified() const { return verified_; }
++
++private:
++  std::string nonce_, first_bare_, expected_server_;
++  bool started_{false}, continued_{false}, verified_{false};
++};
++
++class Result {
++public:
++  explicit Result(const Config& config)
++      : max_rows_(config.max_rows), limit_(config.max_response_bytes) {}
++  void columns(std::string_view body);
++  void row(std::string_view body);
++  void command(std::string_view body);
++  std::string encode() const;
++  bool hasColumns() const { return has_columns_; }
++  bool completed() const { return completed_; }
++
++private:
++  Json columns_ = Json::array(), rows_ = Json::array();
++  std::string command_;
++  uint32_t max_rows_, limit_;
++  size_t encoded_size_{128};
++  bool has_columns_{false}, completed_{false};
++};
++
++} // namespace Postgres
++} // namespace Envoy
+diff --git a/test/common/postgres/BUILD b/test/common/postgres/BUILD
+new file mode 100644
+index 0000000..c562a41
+--- /dev/null
++++ b/test/common/postgres/BUILD
+@@ -0,0 +1,18 @@
++load("//bazel:envoy_build_system.bzl", "envoy_cc_test", "envoy_package")
++licenses(["notice"])
++envoy_package()
++envoy_cc_test(
++    name = "codec_test",
++    srcs = ["codec_test.cc"],
++    deps = ["//source/common/postgres:codec_lib"],
++)
++
++envoy_cc_test(
++    name = "async_client_test",
++    srcs = ["async_client_test.cc"],
++    deps = [
++        "//source/common/postgres:async_client_lib",
++        "//test/mocks/event:event_mocks",
++        "//test/mocks/upstream:cluster_manager_mocks",
++    ],
++)
+diff --git a/test/common/postgres/async_client_test.cc b/test/common/postgres/async_client_test.cc
+new file mode 100644
+index 0000000..efc7e61
+--- /dev/null
++++ b/test/common/postgres/async_client_test.cc
+@@ -0,0 +1,107 @@
++#include "source/common/postgres/async_client.h"
++
++#include <deque>
++
++#include "test/mocks/event/mocks.h"
++#include "test/mocks/upstream/cluster_manager.h"
++#include "gmock/gmock.h"
++#include "gtest/gtest.h"
++
++namespace Envoy {
++namespace Postgres {
++namespace {
++using testing::_;
++using testing::Invoke;
++using testing::NiceMock;
++using testing::Return;
++
++class PgAsyncClientTest : public testing::Test {
++public:
++  void SetUp() override {
++    ON_CALL(manager_, getThreadLocalCluster(_))
++        .WillByDefault(Return(&manager_.thread_local_cluster_));
++    ON_CALL(dispatcher_, post(_)).WillByDefault(Invoke([this](Event::PostCb callback) {
++      posts_.push_back(std::move(callback));
++    }));
++    ON_CALL(dispatcher_, createTimer_(_)).WillByDefault(Invoke([this](Event::TimerCb callback) {
++      timers_.push_back(std::move(callback));
++      return new NiceMock<Event::MockTimer>;
++    }));
++    Config config{"app", "secret", "app", "disable", 1000, 8, 128, 1000, 1048576, 65536, 60000};
++    client_ = createClient("pg", config, manager_, dispatcher_);
++  }
++  void TearDown() override {
++    client_->shutdown();
++    posts_.clear();
++    client_.reset();
++  }
++  void one() {
++    ASSERT_FALSE(posts_.empty());
++    auto callback = std::move(posts_.front());
++    posts_.pop_front();
++    callback();
++  }
++  void drain() {
++    while (!posts_.empty())
++      one();
++  }
++  RequestPtr submit(AsyncClient::Callback callback) {
++    return client_->send(R"({"version":1,"sql":"SELECT 1","params":[]})",
++                         std::chrono::milliseconds(500), std::move(callback));
++  }
++  NiceMock<Event::MockDispatcher> dispatcher_;
++  NiceMock<Upstream::MockClusterManager> manager_;
++  AsyncClientPtr client_;
++  std::deque<Event::PostCb> posts_;
++  std::vector<Event::TimerCb> timers_;
++};
++
++TEST_F(PgAsyncClientTest, CompletionIsPostedAndDeliveredOnce) {
++  size_t calls = 0;
++  auto request = submit([&](Status status, std::string body) {
++    ++calls;
++    EXPECT_EQ(status, Status::NetworkError);
++    EXPECT_EQ(Json::parse(body)["version"], 1);
++  });
++  ASSERT_NE(request, nullptr);
++  EXPECT_EQ(calls, 0U);
++  // The mock cluster supplies no endpoint, an immediate native failure must still be deferred.
++  drain();
++  EXPECT_EQ(calls, 1U);
++  timers_.front()();
++  drain();
++  EXPECT_EQ(calls, 1U);
++}
++TEST_F(PgAsyncClientTest, CancellationBeforeDispatchReleasesCallback) {
++  size_t calls = 0;
++  auto request = submit([&](Status, std::string) { ++calls; });
++  ASSERT_NE(request, nullptr);
++  request->cancel();
++  timers_.front()();
++  drain();
++  EXPECT_EQ(calls, 0U);
++}
++TEST_F(PgAsyncClientTest, QueueDeadlineIsTerminal) {
++  size_t calls = 0;
++  auto request = submit([&](Status status, std::string) {
++    ++calls;
++    EXPECT_EQ(status, Status::Timeout);
++  });
++  ASSERT_NE(request, nullptr);
++  timers_.front()();
++  timers_.front()();
++  drain();
++  EXPECT_EQ(calls, 1U);
++}
++TEST_F(PgAsyncClientTest, ShutdownSuppressesAlreadyPostedCompletion) {
++  size_t calls = 0;
++  auto request = submit([&](Status, std::string) { ++calls; });
++  ASSERT_NE(request, nullptr);
++  one(); // connection failure has queued completion, but has not entered the caller
++  client_->shutdown();
++  drain();
++  EXPECT_EQ(calls, 0U);
++}
++} // namespace
++} // namespace Postgres
++} // namespace Envoy
+diff --git a/test/common/postgres/codec_test.cc b/test/common/postgres/codec_test.cc
+new file mode 100644
+index 0000000..698ad69
+--- /dev/null
++++ b/test/common/postgres/codec_test.cc
+@@ -0,0 +1,136 @@
++#include "source/common/postgres/codec.h"
++#include "gtest/gtest.h"
++
++namespace Envoy {
++namespace Postgres {
++namespace {
++Config config() {
++  return Config{"app", "secret", "app", "disable", 1000, 8, 128, 2, 4096, 65536, 60000};
++}
++TEST(PgCodec, SplitAndCoalescedFrames) {
++  auto bytes = message('C', std::string("SELECT 1\0", 9)) + message('Z', "I");
++  Decoder decoder(4096);
++  char type;
++  std::string body;
++  for (size_t i = 0; i < bytes.size(); ++i) {
++    decoder.append(std::string_view(bytes).substr(i, 1));
++    if (i == 13) {
++      ASSERT_TRUE(decoder.next(type, body));
++      EXPECT_EQ(type, 'C');
++    } else if (i == bytes.size() - 1) {
++      ASSERT_TRUE(decoder.next(type, body));
++      EXPECT_EQ(type, 'Z');
++      EXPECT_EQ(body, "I");
++    } else
++      EXPECT_FALSE(decoder.next(type, body));
++  }
++}
++TEST(PgCodec, InvalidLengthAndOversize) {
++  Decoder decoder(256);
++  char type;
++  std::string body;
++  decoder.append(std::string("D\0\0\0\3", 5));
++  EXPECT_THROW(decoder.next(type, body), Failure);
++  EXPECT_THROW(decoder.append(std::string(257, 'a')), Failure);
++}
++TEST(PgCodec, DecoderLimitTransitionPreservesPartialFrames) {
++  Decoder decoder(4096);
++  decoder.append(message('Z', "I") + std::string("C", 1));
++  char type;
++  std::string body;
++  ASSERT_TRUE(decoder.next(type, body));
++  decoder.setLimit(256);
++  EXPECT_FALSE(decoder.next(type, body));
++  auto command = message('C', std::string("SELECT 1\0", 9));
++  decoder.append(std::string_view(command).substr(1));
++  ASSERT_TRUE(decoder.next(type, body));
++  EXPECT_EQ(type, 'C');
++  EXPECT_EQ(body, std::string("SELECT 1\0", 9));
++  decoder.setLimit(16);
++  EXPECT_EQ(decoder.buffered(), 0U);
++}
++
++TEST(PgCodec, RejectsDeeplyNestedUnknownEnvelopeFields) {
++  const auto nested = std::string(64, '[') + "0" + std::string(64, ']');
++  const auto query = R"({"version":1,"sql":"SELECT 1","params":[],"ignored":)" + nested + "}";
++  EXPECT_THROW(Query::parse(query, 4096), Failure);
++  EXPECT_THROW(Config::parse(query), Failure);
++}
++
++TEST(PgCodec, ParameterBindingIsSeparateFromSql) {
++  Query query = Query::parse(
++      R"({"version":1,"sql":"SELECT $1, $2","params":[{"type_oid":25,"value":"'; SELECT 2"},{"type_oid":25,"value":null}]})",
++      1024);
++  Decoder decoder(4096);
++  decoder.append(queryMessages(query));
++  char type;
++  std::string body;
++  ASSERT_TRUE(decoder.next(type, body));
++  EXPECT_EQ(type, 'P');
++  Reader parse(body);
++  EXPECT_EQ(parse.string(), "");
++  EXPECT_EQ(parse.string(), "SELECT $1, $2");
++  EXPECT_EQ(parse.u16(), 2);
++  EXPECT_EQ(parse.u32(), 25U);
++  EXPECT_EQ(parse.u32(), 25U);
++  parse.end();
++  ASSERT_TRUE(decoder.next(type, body));
++  EXPECT_EQ(type, 'B');
++  Reader bind(body);
++  bind.string();
++  bind.string();
++  EXPECT_EQ(bind.u16(), 0);
++  EXPECT_EQ(bind.u16(), 2);
++  EXPECT_EQ(bind.bytes(bind.u32()), "'; SELECT 2");
++  EXPECT_EQ(bind.u32(), UINT32_MAX);
++  EXPECT_EQ(bind.u16(), 0);
++  bind.end();
++}
++TEST(PgCodec, ResultPreservesDuplicateColumnsNullAndPrecision) {
++  auto c = config();
++  Result result(c);
++  std::string description;
++  put16(description, 2);
++  for (int i = 0; i < 2; ++i) {
++    description += std::string("v\0", 2);
++    put32(description, 0);
++    put16(description, 0);
++    put32(description, 20);
++    put16(description, 8);
++    put32(description, UINT32_MAX);
++    put16(description, 0);
++  }
++  result.columns(description);
++  std::string row;
++  put16(row, 2);
++  std::string value = "9223372036854775807";
++  put32(row, value.size());
++  row += value;
++  put32(row, UINT32_MAX);
++  result.row(row);
++  result.command(std::string("SELECT 1\0", 9));
++  const auto json = Json::parse(result.encode());
++  EXPECT_EQ(json["rows"][0][0], value);
++  EXPECT_TRUE(json["rows"][0][1].is_null());
++  EXPECT_EQ(json["columns"][0]["name"], json["columns"][1]["name"]);
++  EXPECT_THROW(result.row(row), Failure);
++}
++TEST(PgCodec, ScramRejectsWrongNonceAndServerSignature) {
++  Scram scram;
++  auto initial = scram.start(std::string("SCRAM-SHA-256\0\0", 15));
++  EXPECT_THROW(scram.continueWith("r=wrong,s=YWJjZA==,i=4096", "secret"), Failure);
++  auto nonce = initial.substr(initial.find("n,,n=,r=") + 8);
++  auto next = scram.continueWith("r=" + nonce + "server,s=YWJjZA==,i=4096", "secret");
++  EXPECT_FALSE(next.empty());
++  EXPECT_THROW(scram.finish("v=YWJjZA=="), Failure);
++}
++TEST(PgCodec, DatabaseErrorsNeverEchoServerDiagnostics) {
++  auto failure = databaseError(std::string("C42601\0", 7) +
++                                   std::string("Msecret password SQL\0", 21) + std::string(1, '\0'),
++                               false);
++  EXPECT_EQ(failure.sqlstate, "42601");
++  EXPECT_EQ(errorEnvelope(failure).find("secret"), std::string::npos);
++}
++} // namespace
++} // namespace Postgres
++} // namespace Envoy

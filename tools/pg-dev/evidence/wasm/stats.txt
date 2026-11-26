@@ -1,0 +1,12 @@
+cluster.pg.wasm_pg.active: 0
+cluster.pg.wasm_pg.cancelled: 1
+cluster.pg.wasm_pg.connections: 12
+cluster.pg.wasm_pg.database_error: 2
+cluster.pg.wasm_pg.network_error: 1
+cluster.pg.wasm_pg.pending: 0
+cluster.pg.wasm_pg.protocol_error: 1
+cluster.pg.wasm_pg.requests: 39
+cluster.pg.wasm_pg.resource_exhausted: 1
+cluster.pg.wasm_pg.success: 32
+cluster.pg.wasm_pg.timeout: 1
+cluster.pg.wasm_pg.duration_ms: No recorded values

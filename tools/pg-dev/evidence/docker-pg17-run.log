@@ -1,0 +1,30 @@
+Unable to find image 'postgres:17.2-alpine' locally
+17.2-alpine: Pulling from library/postgres
+a8985fd45260: Pulling fs layer
+17b39baecef0: Pulling fs layer
+d3a2de1a7981: Pulling fs layer
+eb51db5f327a: Pulling fs layer
+e49d6e43adcd: Pulling fs layer
+2256ca2ef305: Pulling fs layer
+44c912231178: Pulling fs layer
+52f827f72350: Already exists
+7e9293d9b015: Already exists
+992b9109aeaa: Already exists
+2256ca2ef305: Pull complete
+44c912231178: Pull complete
+d3a2de1a7981: Pull complete
+e49d6e43adcd: Pull complete
+eb51db5f327a: Pull complete
+a8985fd45260: Pull complete
+17b39baecef0: Pull complete
+Digest: sha256:7e5df973a74872482e320dcbdeb055e178d6f42de0558b083892c50cda833c96
+Status: Downloaded newer image for postgres:17.2-alpine
+SET
+ALTER ROLE
+SET
+CREATE ROLE
+SET
+CREATE ROLE
+{"authentication_method":12,"passed":12,"scram_verified":true,"tls_verified":false}
+{"authentication_method":5,"passed":12,"scram_verified":false,"tls_verified":false}
+{"authentication_method":12,"passed":12,"scram_verified":true,"tls_verified":false}

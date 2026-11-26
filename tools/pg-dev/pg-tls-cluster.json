@@ -1,0 +1,24 @@
+{
+  "name": "pg",
+  "type": "STATIC",
+  "connect_timeout": "1s",
+  "transport_socket": {
+    "name": "envoy.transport_sockets.starttls",
+    "typed_config": {
+      "@type": "type.googleapis.com/envoy.extensions.transport_sockets.starttls.v3.UpstreamStartTlsConfig",
+      "tls_socket_config": {
+        "sni": "postgres.local",
+        "common_tls_context": {
+          "validation_context": {
+            "trusted_ca": {"filename": "/absolute/path/to/test-ca.pem"},
+            "match_typed_subject_alt_names": [{"san_type": "DNS", "matcher": {"exact": "postgres.local"}}]
+          }
+        }
+      }
+    }
+  },
+  "load_assignment": {
+    "cluster_name": "pg",
+    "endpoints": [{"lb_endpoints": [{"endpoint": {"address": {"socket_address": {"address": "127.0.0.1", "port_value": 65433}}}}]}]
+  }
+}

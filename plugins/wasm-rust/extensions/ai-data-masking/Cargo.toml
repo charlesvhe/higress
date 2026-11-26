@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 [dependencies]
 aho-corasick = "1"
 higress-wasm-rust = { path = "../../", version = "0.1.0" }
-proxy-wasm = { git="https://github.com/higress-group/proxy-wasm-rust-sdk", branch="main", version="0.2.2" }
+proxy-wasm = { git = "https://github.com/charlesvhe/proxy-wasm-rust-sdk", rev = "339466a0ceec01e5a7d05347e9d86f57c1daa218" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 fancy-regex = "0.19"

@@ -1,0 +1,3 @@
+# Keep raw verification output and unified-diff context byte-for-byte.
+evidence/** -whitespace
+patches/*.patch -whitespace

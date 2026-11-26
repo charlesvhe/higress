@@ -1,0 +1,286 @@
+diff --git a/include/proxy-wasm/context.h b/include/proxy-wasm/context.h
+index be57da0..284015e 100644
+--- a/include/proxy-wasm/context.h
++++ b/include/proxy-wasm/context.h
+@@ -298,6 +298,15 @@ public:
+     return unimplemented();
+   }
+ 
++  // Higress PostgreSQL extension. The originating context owns each call.
++  virtual WasmResult pgInit(std::string_view, std::string_view, uint32_t *) {
++    return unimplemented();
++  }
++  virtual WasmResult pgCall(uint32_t, std::string_view, uint32_t, uint32_t *) {
++    return unimplemented();
++  }
++  void onPgCallResponse(uint32_t token, uint32_t status, uint32_t response_size);
++
+   // gRPC
+   WasmResult grpcCall(std::string_view /* grpc_service */, std::string_view /* service_name */,
+                       std::string_view /* method_name */, const Pairs & /* initial_metadata */,
+diff --git a/include/proxy-wasm/exports.h b/include/proxy-wasm/exports.h
+index db80922..a9d8a05 100644
+--- a/include/proxy-wasm/exports.h
++++ b/include/proxy-wasm/exports.h
+@@ -111,6 +111,9 @@ Word redis_init(Word service_ptr, Word service_size, Word username_ptr, Word use
+                 Word passowrd_ptr, Word password_size, Word timeout_milliseconds);
+ Word redis_call(Word service_ptr, Word service_size, Word query_ptr, Word query_size,
+                 Word token_ptr);
++Word pg_init(Word service_ptr, Word service_size, Word config_ptr, Word config_size,
++             Word client_ptr);
++Word pg_call(Word client_id, Word request_ptr, Word request_size, Word timeout_ms, Word token_ptr);
+ Word define_metric(Word metric_type, Word name_ptr, Word name_size, Word metric_id_ptr);
+ Word increment_metric(Word metric_id, int64_t offset);
+ Word record_metric(Word metric_id, uint64_t value);
+@@ -201,9 +204,10 @@ Word wasi_unstable_path_filestat_get(Word fd, Word flags, Word path, Word path_l
+                                       _f(increment_metric) _f(record_metric) _f(get_metric)        \
+                                           _f(set_effective_context) _f(done)                       \
+                                               _f(call_foreign_function) _f(redis_init)             \
+-                                                _f(redis_call) _f(get_upstream_hosts)              \
+-                                                  _f(inject_encoded_data_to_filter_chain)          \
+-                                                    _f(set_upstream_override_host)
++                                                  _f(redis_call) _f(pg_init) _f(pg_call)           \
++                                                      _f(get_upstream_hosts)                       \
++                                                          _f(inject_encoded_data_to_filter_chain)  \
++                                                              _f(set_upstream_override_host)
+ 
+ #define FOR_ALL_HOST_FUNCTIONS_ABI_SPECIFIC(_f)                                                    \
+   _f(get_configuration) _f(continue_request) _f(continue_response) _f(clear_route_cache)           \
+diff --git a/include/proxy-wasm/sdk.h b/include/proxy-wasm/sdk.h
+index 56d773d..121abf8 100644
+--- a/include/proxy-wasm/sdk.h
++++ b/include/proxy-wasm/sdk.h
+@@ -33,6 +33,8 @@ namespace internal {
+ using WasmResult = internal::WasmResult;
+ using WasmHeaderMapType = internal::WasmHeaderMapType;
+ using WasmBufferType = internal::WasmBufferType;
++// Higress extension without changing the external C++ plugin SDK.
++constexpr WasmBufferType kPgCallResponseBuffer = static_cast<WasmBufferType>(10);
+ using WasmBufferFlags = internal::WasmBufferFlags;
+ using WasmStreamType = internal::WasmStreamType;
+ 
+diff --git a/include/proxy-wasm/wasm.h b/include/proxy-wasm/wasm.h
+index e583ea4..9266f00 100644
+--- a/include/proxy-wasm/wasm.h
++++ b/include/proxy-wasm/wasm.h
+@@ -193,9 +193,10 @@ public:
+     GrpcCall = 1,
+     GrpcStream = 2,
+     RedisCall = 3,
++    PgCall = 4,
+   };
+-  static const uint32_t kCalloutTypeMask = 0x3;  // Enough to cover the 3 types.
+-  static const uint32_t kCalloutIncrement = 0x4; // Enough to cover the 3 types.
++  static const uint32_t kCalloutTypeMask = 0x7; // Five callout types, including PostgreSQL.
++  static const uint32_t kCalloutIncrement = 0x8;
+   bool isHttpCallId(uint32_t callout_id) {
+     return (callout_id & kCalloutTypeMask) == static_cast<uint32_t>(CalloutType::HttpCall);
+   }
+@@ -208,6 +209,23 @@ public:
+   bool isRedisCallId(uint32_t callout_id) {
+     return (callout_id & kCalloutTypeMask) == static_cast<uint32_t>(CalloutType::RedisCall);
+   }
++  bool isPgCallId(uint32_t id) {
++    return (id & kCalloutTypeMask) == static_cast<uint32_t>(CalloutType::PgCall);
++  }
++  uint32_t nextPgCallId() {
++    // Skip all in-flight IDs when the opaque counter wraps.
++    for (size_t attempts = 0; attempts <= active_pg_call_ids_.size(); ++attempts) {
++      next_pg_call_id_ = next_pg_call_id_ > UINT32_MAX - kCalloutIncrement
++                             ? static_cast<uint32_t>(CalloutType::PgCall)
++                             : next_pg_call_id_ + kCalloutIncrement;
++      if (active_pg_call_ids_.insert(next_pg_call_id_).second) {
++        return next_pg_call_id_;
++      }
++    }
++    return 0;
++  }
++  void releasePgCallId(uint32_t id) { active_pg_call_ids_.erase(id); }
++  bool hasPgCallResponse() const { return static_cast<bool>(on_pg_call_response_); }
+   uint32_t nextHttpCallId() {
+     // TODO(PiotrSikora): re-add rollover protection (requires at least 1 billion callouts).
+     return next_http_call_id_ += kCalloutIncrement;
+@@ -284,6 +302,7 @@ protected:
+   WasmCallVoid<5> on_http_call_response_;
+ 
+   WasmCallVoid<4> on_redis_call_response_;
++  WasmCallVoid<4> on_pg_call_response_;
+ 
+   WasmCallVoid<3> on_grpc_receive_;
+   WasmCallVoid<3> on_grpc_close_;
+@@ -304,8 +323,8 @@ protected:
+           _f(on_downstream_connection_close) _f(on_upstream_connection_close) _f(on_request_body)  \
+               _f(on_request_trailers) _f(on_request_metadata) _f(on_response_body)                 \
+                   _f(on_response_trailers) _f(on_response_metadata) _f(on_http_call_response)      \
+-                      _f(on_redis_call_response) _f(on_grpc_receive) _f(on_grpc_close)             \
+-                          _f(on_grpc_receive_initial_metadata)                                     \
++                      _f(on_redis_call_response) _f(on_pg_call_response) _f(on_grpc_receive)       \
++                          _f(on_grpc_close) _f(on_grpc_receive_initial_metadata)                   \
+                               _f(on_grpc_receive_trailing_metadata) _f(on_queue_ready) _f(on_done) \
+                                   _f(on_log) _f(on_delete)
+ 
+@@ -338,6 +357,8 @@ protected:
+   uint32_t next_grpc_call_id_ = static_cast<uint32_t>(CalloutType::GrpcCall);
+   uint32_t next_grpc_stream_id_ = static_cast<uint32_t>(CalloutType::GrpcStream);
+   uint32_t next_redis_call_id_ = static_cast<uint32_t>(CalloutType::RedisCall);
++  uint32_t next_pg_call_id_ = static_cast<uint32_t>(CalloutType::PgCall);
++  std::unordered_set<uint32_t> active_pg_call_ids_;
+ 
+   // Actions to be done after the call into the VM returns.
+   std::deque<std::function<void()>> after_vm_call_actions_;
+diff --git a/include/proxy-wasm/wasm_api_impl.h b/include/proxy-wasm/wasm_api_impl.h
+index 46b4212..95a244c 100644
+--- a/include/proxy-wasm/wasm_api_impl.h
++++ b/include/proxy-wasm/wasm_api_impl.h
+@@ -241,6 +241,18 @@ inline WasmResult proxy_redis_init(const char *service_ptr, size_t service_size,
+                                               WS(password_size), WS(timeout_milliseconds)));
+ }
+ 
++// Higress PG ABI, for native host tests and future C++ consumers.
++inline WasmResult proxy_pg_init(const char *service, size_t service_size, const uint8_t *config,
++                                size_t config_size, uint32_t *client) {
++  return wordToWasmResult(
++      exports::pg_init(WR(service), WS(service_size), WR(config), WS(config_size), WR(client)));
++}
++inline WasmResult proxy_pg_call(uint32_t client, const uint8_t *request, size_t request_size,
++                                uint32_t timeout_ms, uint32_t *token) {
++  return wordToWasmResult(
++      exports::pg_call(WS(client), WR(request), WS(request_size), WS(timeout_ms), WR(token)));
++}
++
+ // gRPC
+ // Returns token, used in gRPC callbacks (onGrpc...)
+ inline WasmResult proxy_grpc_call(const char *service_ptr, size_t service_size,
+diff --git a/src/context.cc b/src/context.cc
+index 6b789b4..b3f6861 100644
+--- a/src/context.cc
++++ b/src/context.cc
+@@ -437,6 +437,14 @@ void ContextBase::onRedisCallResponse(uint32_t token, uint32_t status, uint32_t
+   wasm_->on_redis_call_response_(this, id_, token, status, response_size);
+ }
+ 
++void ContextBase::onPgCallResponse(uint32_t token, uint32_t status, uint32_t response_size) {
++  if (isFailed() || !wasm_->on_pg_call_response_) {
++    return;
++  }
++  DeferAfterCallActions actions(this);
++  wasm_->on_pg_call_response_(this, id_, token, status, response_size);
++}
++
+ void ContextBase::onQueueReady(uint32_t token) {
+   if (!isFailed() && wasm_->on_queue_ready_) {
+     DeferAfterCallActions actions(this);
+diff --git a/src/exports.cc b/src/exports.cc
+index 7876cc7..0a0b385 100644
+--- a/src/exports.cc
++++ b/src/exports.cc
+@@ -494,7 +494,8 @@ Word get_header_map_size(Word type, Word result_ptr) {
+ 
+ // Buffer
+ Word get_buffer_bytes(Word type, Word start, Word length, Word ptr_ptr, Word size_ptr) {
+-  if (type > static_cast<uint64_t>(WasmBufferType::MAX)) {
++  if (type > static_cast<uint64_t>(WasmBufferType::MAX) &&
++      type != static_cast<uint64_t>(kPgCallResponseBuffer)) {
+     return WasmResult::BadArgument;
+   }
+   auto *context = contextOrEffectiveContext();
+@@ -525,7 +526,8 @@ Word get_buffer_bytes(Word type, Word start, Word length, Word ptr_ptr, Word siz
+ }
+ 
+ Word get_buffer_status(Word type, Word length_ptr, Word flags_ptr) {
+-  if (type > static_cast<uint64_t>(WasmBufferType::MAX)) {
++  if (type > static_cast<uint64_t>(WasmBufferType::MAX) &&
++      type != static_cast<uint64_t>(kPgCallResponseBuffer)) {
+     return WasmResult::BadArgument;
+   }
+   auto *context = contextOrEffectiveContext();
+@@ -545,7 +547,9 @@ Word get_buffer_status(Word type, Word length_ptr, Word flags_ptr) {
+ }
+ 
+ Word set_buffer_bytes(Word type, Word start, Word length, Word data_ptr, Word data_size) {
+-  if (type > static_cast<uint64_t>(WasmBufferType::MAX)) {
++  // PG results are only exposed for reading during their completion callback.
++  if (type > static_cast<uint64_t>(WasmBufferType::MAX) ||
++      type == static_cast<uint64_t>(kPgCallResponseBuffer)) {
+     return WasmResult::BadArgument;
+   }
+   auto *context = contextOrEffectiveContext();
+@@ -610,6 +614,33 @@ Word redis_call(Word service_ptr, Word service_size, Word query_ptr, Word query_
+   return result;
+ }
+ 
++Word pg_init(Word service_ptr, Word service_size, Word config_ptr, Word config_size,
++             Word client_ptr) {
++  auto *context = contextOrEffectiveContext()->root_context();
++  auto service = context->wasmVm()->getMemory(service_ptr, service_size);
++  auto config = context->wasmVm()->getMemory(config_ptr, config_size);
++  uint32_t client = 0;
++  if (!service || !config || !context->wasm()->setDatatype(client_ptr, client)) {
++    return WasmResult::InvalidMemoryAccess;
++  }
++  auto result = context->pgInit(service.value(), config.value(), &client);
++  context->wasm()->setDatatype(client_ptr, client);
++  return result;
++}
++
++Word pg_call(Word client_id, Word request_ptr, Word request_size, Word timeout_ms, Word token_ptr) {
++  // Unlike Redis, retain the origin context so deletion cancels its PG requests.
++  auto *context = contextOrEffectiveContext();
++  auto request = context->wasmVm()->getMemory(request_ptr, request_size);
++  uint32_t token = 0;
++  if (!request || !context->wasm()->setDatatype(token_ptr, token)) {
++    return WasmResult::InvalidMemoryAccess;
++  }
++  auto result = context->pgCall(client_id.u64_, request.value(), timeout_ms.u64_, &token);
++  context->wasm()->setDatatype(token_ptr, token);
++  return result;
++}
++
+ Word define_metric(Word metric_type, Word name_ptr, Word name_size, Word metric_id_ptr) {
+   auto *context = contextOrEffectiveContext();
+   auto name = context->wasmVm()->getMemory(name_ptr, name_size);
+diff --git a/src/null/null_plugin.cc b/src/null/null_plugin.cc
+index d2a1b36..def0f11 100644
+--- a/src/null/null_plugin.cc
++++ b/src/null/null_plugin.cc
+@@ -129,6 +129,12 @@ void NullPlugin::getFunction(std::string_view function_name, WasmCallVoid<3> *f)
+ 
+ void NullPlugin::getFunction(std::string_view function_name, WasmCallVoid<4> *f) {
+   auto *plugin = this;
++  // The external C++ plugin SDK has no PG callback yet. Keep existing NullVm
++  // plugins working without an error log; pg_call rejects a missing callback.
++  if (function_name == "proxy_on_pg_call_response") {
++    *f = nullptr;
++    return;
++  }
+   if (function_name == "proxy_on_redis_call_response") {
+     *f = [plugin](ContextBase *context, Word context_id, Word token, Word status,
+                   Word response_size) {
+diff --git a/src/wamr/wamr.cc b/src/wamr/wamr.cc
+index c02af9e..ba97a74 100644
+--- a/src/wamr/wamr.cc
++++ b/src/wamr/wamr.cc
+@@ -239,8 +239,8 @@ static const char *printValKind(wasm_valkind_t kind) {
+     return "f32";
+   case WASM_F64:
+     return "f64";
+-  case WASM_ANYREF:
+-    return "anyref";
++  case 128: // Wasm C API externref: ANYREF before WAMR 2.2, EXTERNREF since 2.2.
++    return "externref";
+   case WASM_FUNCREF:
+     return "funcref";
+   default:
+diff --git a/src/wasm.cc b/src/wasm.cc
+index e6628ca..e8e2e5a 100644
+--- a/src/wasm.cc
++++ b/src/wasm.cc
+@@ -153,6 +153,8 @@ void WasmBase::registerCallbacks() {
+     _REGISTER_PROXY(get_log_level);
+     _REGISTER_PROXY(redis_init);
+     _REGISTER_PROXY(redis_call);
++    _REGISTER_PROXY(pg_init);
++    _REGISTER_PROXY(pg_call);
+     _REGISTER_PROXY(inject_encoded_data_to_filter_chain);
+     _REGISTER_PROXY(set_upstream_override_host);
+     _REGISTER_PROXY(get_upstream_hosts);

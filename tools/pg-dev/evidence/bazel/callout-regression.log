@@ -1,0 +1,885 @@
+===== shard_10_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 10 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.HeadersStopAndBuffer/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.HeadersStopAndBuffer/null_cpp (86 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.ProactiveRebuildRollsActiveCurrentAndBoundsLiveOldGeneration/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.ProactiveRebuildRollsActiveCurrentAndBoundsLiveOldGeneration/null_cpp (75 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (162 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (162 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_11_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 11 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.HeadersStopAndWatermark/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.HeadersStopAndWatermark/null_cpp (82 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.RebuildGuardRegistryRetiresStaleVmKeys/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.RebuildGuardRegistryRetiresStaleVmKeys/null_cpp (68 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (151 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (151 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_12_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 12 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestReadBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestReadBody/null_cpp (80 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.NewThreadLocalWrapperKeepsRebuildGuardState/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.NewThreadLocalWrapperKeepsRebuildGuardState/null_cpp (69 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (149 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (149 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_13_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 13 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestPrependAndAppendToBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestPrependAndAppendToBody/null_cpp (78 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.ActiveCounterIncludesDifferentPluginHandleOnSameGeneration/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.ActiveCounterIncludesDifferentPluginHandleOnSameGeneration/null_cpp (68 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (147 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (147 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_14_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 14 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestReplaceBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestReplaceBody/null_cpp (78 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.FailRecoveryBypassesProactiveRollingGuard/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.FailRecoveryBypassesProactiveRollingGuard/null_cpp (68 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (147 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (147 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_15_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 15 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestPartialReplaceBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestPartialReplaceBody/null_cpp (79 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.ReclaimTimerRebuildsIdleVmWhenShouldRebuildIsSet/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.ReclaimTimerRebuildsIdleVmWhenShouldRebuildIsSet/null_cpp (69 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (149 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (149 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_16_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 16 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestRemoveBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestRemoveBody/null_cpp (78 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.ReclaimTimerUsesMemoryThresholdSourceAndRuntimeOverride/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.ReclaimTimerUsesMemoryThresholdSourceAndRuntimeOverride/null_cpp (69 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (148 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (148 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_17_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 17 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestPartialRemoveBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestPartialRemoveBody/null_cpp (79 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.ReclaimMemoryThresholdFallsBackWhenRuntimeValueIsZero/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.ReclaimMemoryThresholdFallsBackWhenRuntimeValueIsZero/null_cpp (69 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (149 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (149 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_18_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 18 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestBufferBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestBufferBody/null_cpp (78 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.ReclaimTimerLiveOldSkipKeepsEligibleSinceUntilSuccessfulReclaim/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.ReclaimTimerLiveOldSkipKeepsEligibleSinceUntilSuccessfulReclaim/null_cpp (68 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (147 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (147 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_19_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 19 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestBufferBodyAndDestroyFilterInTheAddDecodedDataCallback/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestBufferBodyAndDestroyFilterInTheAddDecodedDataCallback/null_cpp (78 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.ReclaimTimerStillHonorsRecoverInterval/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.ReclaimTimerStillHonorsRecoverInterval/null_cpp (69 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (148 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (148 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_1_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 1 of 50.
+[==========] Running 2 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from RedisAsyncClientConfigTest
+[ RUN      ] RedisAsyncClientConfigTest.ParseBufferParamsFromQueryString
+[       OK ] RedisAsyncClientConfigTest.ParseBufferParamsFromQueryString (0 ms)
+[----------] 1 test from RedisAsyncClientConfigTest (0 ms total)
+
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcStreamCancel/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcStreamCancel/null_cpp (85 ms)
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest (86 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 2 test suites ran. (86 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_20_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 20 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestPrependAndAppendToBufferedBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestPrependAndAppendToBufferedBody/null_cpp (79 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.ReclaimTimerDoesNotCrashForEmptyHandle/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.ReclaimTimerDoesNotCrashForEmptyHandle/null_cpp (70 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (149 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (149 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_21_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 21 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestReplaceBufferedBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestReplaceBufferedBody/null_cpp (78 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.StaleWrapperSynchronizesToHostCurrentBeforeReclaim/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.StaleWrapperSynchronizesToHostCurrentBeforeReclaim/null_cpp (70 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (149 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (149 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_22_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 22 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestReplaceBatchedBufferedBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestReplaceBatchedBufferedBody/null_cpp (78 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.RecoverFromCrash/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.RecoverFromCrash/null_cpp (71 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (150 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (150 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_23_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 23 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestPartialReplaceBufferedBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestPartialReplaceBufferedBody/null_cpp (79 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.ProactiveRebuild/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.ProactiveRebuild/null_cpp (69 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (149 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (149 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_24_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 24 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestRemoveBufferedBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestRemoveBufferedBody/null_cpp (78 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.Metadata/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.Metadata/null_cpp (80 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (159 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (159 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_25_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 25 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestPartialRemoveBufferedBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestPartialRemoveBufferedBody/null_cpp (80 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.Property/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.Property/null_cpp (89 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (170 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (170 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_26_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 26 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestBufferThenStreamBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.BodyRequestBufferThenStreamBody/null_cpp (79 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.ClusterMetadata/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.ClusterMetadata/null_cpp (80 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (160 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (160 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_27_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 27 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.BodyResponseBufferThenStreamBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.BodyResponseBufferThenStreamBody/null_cpp (78 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.SharedData/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.SharedData/null_cpp (70 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (149 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (149 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_28_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 28 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.AccessLog/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.AccessLog/null_cpp (86 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.SharedQueue/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.SharedQueue/null_cpp (71 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (157 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (157 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_29_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 29 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.AccessLogClientDisconnected/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.AccessLogClientDisconnected/null_cpp (88 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.RootIdNotRegistered/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.RootIdNotRegistered/null_cpp (71 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (160 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (160 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_2_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 2 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.BadCode/null_cpp
+[2026-11-26 07:46:13.178][758223][error][wasm] [source/extensions/common/wasm/wasm.cc:367] Wasm VM failed Failed to load NullVM plugin
+[2026-11-26 07:46:13.178][758223][error][wasm] [source/extensions/common/wasm/wasm.cc:367] Wasm VM failed Failed to load Wasm code
+[2026-11-26 07:46:13.178][758223][critical][wasm] [source/extensions/common/wasm/wasm.cc:1110] Plugin configured to fail closed failed to load
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.BadCode/null_cpp (76 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcStreamOpenAtShutdown/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcStreamOpenAtShutdown/null_cpp (71 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (148 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (149 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_30_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 30 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.AccessLogDisabledForIncompleteStream/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.AccessLogDisabledForIncompleteStream/null_cpp (87 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.RootId1/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.RootId1/null_cpp (70 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (158 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (158 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_31_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 31 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.AccessLogCreate/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.AccessLogCreate/null_cpp (85 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.RootId2/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.RootId2/null_cpp (71 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (157 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (157 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_32_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 32 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.RedisCall/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.RedisCall/null_cpp (79 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.PanicOnRequestHeaders/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.PanicOnRequestHeaders/null_cpp (69 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (150 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (150 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_33_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 33 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.DisableClearRouteCache/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.DisableClearRouteCache/null_cpp (95 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.PanicOnRequestBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.PanicOnRequestBody/null_cpp (70 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (166 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (166 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_34_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 34 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.SetDecoderBufferLimit/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.SetDecoderBufferLimit/null_cpp (95 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.PanicOnRequestTrailers/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.PanicOnRequestTrailers/null_cpp (69 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (165 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (165 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_35_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 35 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.SetEncoderBufferLimit/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.SetEncoderBufferLimit/null_cpp (103 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.PanicOnResponseHeaders/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.PanicOnResponseHeaders/null_cpp (76 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (179 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (180 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_36_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 36 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.AsyncCall/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.AsyncCall/null_cpp (88 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.PanicOnResponseBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.PanicOnResponseBody/null_cpp (76 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (164 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (164 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_37_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 37 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.StopAndResumeViaAsyncCall/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.StopAndResumeViaAsyncCall/null_cpp (99 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.PanicOnResponseTrailers/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.PanicOnResponseTrailers/null_cpp (72 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (171 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (171 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_38_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 38 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.AsyncCallBadCall/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.AsyncCallBadCall/null_cpp (81 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.CloseRequest/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.CloseRequest/null_cpp (98 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (180 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (180 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_39_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 39 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.AsyncCallBadCluster/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.AsyncCallBadCluster/null_cpp (87 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.CloseResponse/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.CloseResponse/null_cpp (96 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (184 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (184 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_3_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 3 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.HeadersOnlyRequestHeadersOnlyWithEnvVars/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.HeadersOnlyRequestHeadersOnlyWithEnvVars/null_cpp (95 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.GetRouteName/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.GetRouteName/null_cpp (89 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (185 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (185 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_40_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 40 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.AsyncCallFailure/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.AsyncCallFailure/null_cpp (88 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.VerifySignature/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.VerifySignature/null_cpp (75 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (164 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (164 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_41_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 41 of 50.
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.AsyncCallAfterDestroyed/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.AsyncCallAfterDestroyed/null_cpp (82 ms)
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest (82 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (82 ms total)
+[  PASSED  ] 1 test.
+
+===== shard_42_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 42 of 50.
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcCall/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcCall/null_cpp (83 ms)
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest (83 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (83 ms total)
+[  PASSED  ] 1 test.
+
+===== shard_43_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 43 of 50.
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcCallBadCall/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcCallBadCall/null_cpp (81 ms)
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest (81 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (81 ms total)
+[  PASSED  ] 1 test.
+
+===== shard_44_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 44 of 50.
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcCallFailure/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcCallFailure/null_cpp (82 ms)
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest (82 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (82 ms total)
+[  PASSED  ] 1 test.
+
+===== shard_45_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 45 of 50.
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcCallCancel/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcCallCancel/null_cpp (82 ms)
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest (82 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (82 ms total)
+[  PASSED  ] 1 test.
+
+===== shard_46_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 46 of 50.
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcCallClose/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcCallClose/null_cpp (81 ms)
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest (81 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (81 ms total)
+[  PASSED  ] 1 test.
+
+===== shard_47_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 47 of 50.
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcCallAfterDestroyed/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcCallAfterDestroyed/null_cpp (82 ms)
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest (82 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (82 ms total)
+[  PASSED  ] 1 test.
+
+===== shard_48_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 48 of 50.
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcStream/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcStream/null_cpp (80 ms)
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest (81 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (81 ms total)
+[  PASSED  ] 1 test.
+
+===== shard_49_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 49 of 50.
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcStreamCloseLocal/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcStreamCloseLocal/null_cpp (82 ms)
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest (82 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (82 ms total)
+[  PASSED  ] 1 test.
+
+===== shard_4_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 4 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.AllHeadersAndTrailers/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.AllHeadersAndTrailers/null_cpp (101 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.GetVMMemorySize/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.GetVMMemorySize/null_cpp (69 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (171 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (171 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_50_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 50 of 50.
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcStreamCloseRemote/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.GrpcStreamCloseRemote/null_cpp (81 ms)
+[----------] 1 test from RuntimesAndLanguages/WasmHttpFilterTest (82 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (82 ms total)
+[  PASSED  ] 1 test.
+
+===== shard_5_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 5 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.AddTrailers/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.AddTrailers/null_cpp (78 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.ActiveStreamCounterTracksStreamContextLifetime/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.ActiveStreamCounterTracksStreamContextLifetime/null_cpp (69 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (148 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (148 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_6_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 6 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.AllHeadersAndTrailersNotStarted/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.AllHeadersAndTrailersNotStarted/null_cpp (79 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.ProactiveRebuildNoOldGenerationStillSucceeds/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.ProactiveRebuildNoOldGenerationStillSucceeds/null_cpp (69 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (149 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (149 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_7_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 7 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.HeadersOnlyRequestHeadersAndBody/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.HeadersOnlyRequestHeadersAndBody/null_cpp (78 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.ProactiveRebuildSkipsWhenOldGenerationLiveAndCurrentActive/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.ProactiveRebuildSkipsWhenOldGenerationLiveAndCurrentActive/null_cpp (68 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (147 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (147 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_8_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 8 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.HeadersStopAndContinue/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.HeadersStopAndContinue/null_cpp (79 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.ProactiveRebuildSkipsWhenOldGenerationLiveAndCurrentIdle/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.ProactiveRebuildSkipsWhenOldGenerationLiveAndCurrentIdle/null_cpp (69 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (148 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (148 ms total)
+[  PASSED  ] 2 tests.
+
+===== shard_9_of_50 =====
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/extensions/filters/http/wasm:wasm_filter_test
+-----------------------------------------------------------------------------
+Note: This is test shard 9 of 50.
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.HeadersStopAndContinueAllowStopIteration/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.HeadersStopAndContinueAllowStopIteration/null_cpp (89 ms)
+[ RUN      ] RuntimesAndLanguages/WasmHttpFilterTest.ProactiveRebuildPrunesExpiredOldGenerations/null_cpp
+[       OK ] RuntimesAndLanguages/WasmHttpFilterTest.ProactiveRebuildPrunesExpiredOldGenerations/null_cpp (76 ms)
+[----------] 2 tests from RuntimesAndLanguages/WasmHttpFilterTest (166 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (166 ms total)
+[  PASSED  ] 2 tests.

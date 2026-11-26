@@ -1,0 +1,4 @@
+   Compiling proxy-wasm v0.2.2 (https://github.com/charlesvhe/proxy-wasm-rust-sdk?rev=339466a0ceec01e5a7d05347e9d86f57c1daa218#339466a0)
+   Compiling higress-wasm-rust v0.1.0 (/Users/charles/Desktop/技术沙龙/higress/plugins/wasm-rust)
+   Compiling pg-query v0.1.0 (/Users/charles/Desktop/技术沙龙/higress/plugins/wasm-rust/example/pg-query)
+    Finished `release` profile [optimized] target(s) in 1.58s

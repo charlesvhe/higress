@@ -1,0 +1,3 @@
+ARG PG_BASE_IMAGE
+FROM ${PG_BASE_IMAGE}
+COPY --chmod=0755 envoy-linux /usr/local/bin/envoy

@@ -1,0 +1,367 @@
+diff --git a/src/dispatcher.rs b/src/dispatcher.rs
+index 942cfe0..5e1a5e5 100644
+--- a/src/dispatcher.rs
++++ b/src/dispatcher.rs
+@@ -13,7 +13,7 @@
+ // limitations under the License.
+ 
+ use crate::hostcalls;
+-use crate::hostcalls::RedisCallbackFn;
++use crate::hostcalls::{PgCallbackFn, RedisCallbackFn};
+ use crate::traits::*;
+ use crate::types::*;
+ use hashbrown::HashMap;
+@@ -52,6 +52,10 @@ pub(crate) fn register_redis_callout(token_id: u32, call_fn: Box<RedisCallbackFn
+     DISPATCHER.with(|dispatcher| dispatcher.register_redis_callout(token_id, call_fn));
+ }
+ 
++pub(crate) fn register_pg_callout(token_id: u32, callback: Box<PgCallbackFn>) -> bool {
++    DISPATCHER.with(|dispatcher| dispatcher.register_pg_callout(token_id, callback))
++}
++
+ struct NoopRoot;
+ 
+ impl Context for NoopRoot {}
+@@ -69,6 +73,7 @@ struct Dispatcher {
+     grpc_callouts: RefCell<HashMap<u32, u32>>,
+     grpc_streams: RefCell<HashMap<u32, u32>>,
+     redis_callouts: RefCell<HashMap<u32, (u32, Box<RedisCallbackFn>)>>,
++    pg_callouts: RefCell<HashMap<u32, (u32, Box<PgCallbackFn>)>>,
+ }
+ 
+ impl Dispatcher {
+@@ -85,6 +90,7 @@ impl Dispatcher {
+             grpc_callouts: RefCell::new(HashMap::new()),
+             grpc_streams: RefCell::new(HashMap::new()),
+             redis_callouts: RefCell::new(HashMap::new()),
++            pg_callouts: RefCell::new(HashMap::new()),
+         }
+     }
+ 
+@@ -144,6 +150,30 @@ impl Dispatcher {
+         }
+     }
+ 
++    fn register_pg_callout(&self, token_id: u32, callback: Box<PgCallbackFn>) -> bool {
++        let mut pending = self.pg_callouts.borrow_mut();
++        if pending.contains_key(&token_id) {
++            return false;
++        }
++        pending.insert(token_id, (self.active_id.get(), callback));
++        true
++    }
++
++    fn on_pg_call_response(&self, token_id: u32, status: u32, response_size: usize) {
++        let entry = self.pg_callouts.borrow_mut().remove(&token_id);
++        if let Some((context_id, callback)) = entry {
++            let exists = self.http_streams.borrow().contains_key(&context_id)
++                || self.streams.borrow().contains_key(&context_id)
++                || self.roots.borrow().contains_key(&context_id);
++            if !exists || hostcalls::set_effective_context(context_id).is_err() {
++                return;
++            }
++            let previous = self.active_id.replace(context_id);
++            callback(token_id, status, response_size);
++            self.active_id.set(previous);
++        }
++    }
++
+     fn create_root_context(&self, context_id: u32) {
+         let new_context = match self.new_root.get() {
+             Some(f) => f(context_id),
+@@ -253,7 +283,24 @@ impl Dispatcher {
+         }
+     }
+ 
++    fn remove_pg_context(&self, context_id: u32) {
++        // Drop user captures after releasing the map borrow (Drop can reenter the SDK).
++        let removed: Vec<_> = {
++            let mut pending = self.pg_callouts.borrow_mut();
++            let tokens: Vec<_> = pending
++                .iter()
++                .filter_map(|(token, (owner, _))| (*owner == context_id).then_some(*token))
++                .collect();
++            tokens
++                .into_iter()
++                .filter_map(|token| pending.remove(&token))
++                .collect()
++        };
++        drop(removed);
++    }
++
+     fn on_delete(&self, context_id: u32) {
++        self.remove_pg_context(context_id);
+         if !(self.http_streams.borrow_mut().remove(&context_id).is_some()
+             || self.streams.borrow_mut().remove(&context_id).is_some()
+             || self.roots.borrow_mut().remove(&context_id).is_some())
+@@ -734,6 +781,16 @@ pub extern "C" fn proxy_on_redis_call_response(
+     DISPATCHER.with(|dispatcher| dispatcher.on_redis_call_response(token_id, status, response_size))
+ }
+ 
++#[no_mangle]
++pub extern "C" fn proxy_on_pg_call_response(
++    _context_id: u32,
++    token_id: u32,
++    status: u32,
++    response_size: usize,
++) {
++    DISPATCHER.with(|dispatcher| dispatcher.on_pg_call_response(token_id, status, response_size));
++}
++
+ #[no_mangle]
+ pub extern "C" fn proxy_on_grpc_receive_initial_metadata(
+     _context_id: u32,
+@@ -761,3 +818,67 @@ pub extern "C" fn proxy_on_grpc_receive_trailing_metadata(
+ pub extern "C" fn proxy_on_grpc_close(_context_id: u32, token_id: u32, status_code: u32) {
+     DISPATCHER.with(|dispatcher| dispatcher.on_grpc_close(token_id, status_code))
+ }
++
++#[cfg(test)]
++mod pg_tests {
++    use super::*;
++    use std::rc::Rc;
++
++    #[test]
++    fn duplicate_pg_token_preserves_original_callback() {
++        let dispatcher = Dispatcher::new();
++        let called = Rc::new(Cell::new(0));
++        let first = called.clone();
++        assert!(dispatcher.register_pg_callout(12, Box::new(move |_, _, _| first.set(1))));
++        assert!(
++            !dispatcher.register_pg_callout(12, Box::new(|_, _, _| panic!("replaced callback")))
++        );
++        let (_, callback) = dispatcher.pg_callouts.borrow_mut().remove(&12).unwrap();
++        callback(12, 0, 0);
++        assert_eq!(called.get(), 1);
++    }
++
++    #[test]
++    fn context_cleanup_releases_captures_without_holding_map_borrow() {
++        struct Capture {
++            dispatcher: Rc<Dispatcher>,
++            dropped: Rc<Cell<bool>>,
++        }
++        impl Drop for Capture {
++            fn drop(&mut self) {
++                assert!(self.dispatcher.pg_callouts.try_borrow_mut().is_ok());
++                self.dropped.set(true);
++            }
++        }
++        let dispatcher = Rc::new(Dispatcher::new());
++        let dropped = Rc::new(Cell::new(false));
++        let capture = Capture {
++            dispatcher: dispatcher.clone(),
++            dropped: dropped.clone(),
++        };
++        dispatcher.active_id.set(7);
++        dispatcher.register_pg_callout(12, Box::new(move |_, _, _| drop(capture)));
++        dispatcher.active_id.set(8);
++        dispatcher.register_pg_callout(20, Box::new(|_, _, _| {}));
++        dispatcher.remove_pg_context(7);
++        assert!(dropped.get());
++        assert!(!dispatcher.pg_callouts.borrow().contains_key(&12));
++        assert!(dispatcher.pg_callouts.borrow().contains_key(&20));
++    }
++
++    #[test]
++    fn callback_is_removed_before_reentrant_registration() {
++        let dispatcher = Rc::new(Dispatcher::new());
++        let inner = dispatcher.clone();
++        assert!(dispatcher.register_pg_callout(
++            12,
++            Box::new(move |_, _, _| {
++                assert!(inner.register_pg_callout(20, Box::new(|_, _, _| {})));
++            })
++        ));
++        let entry = dispatcher.pg_callouts.borrow_mut().remove(&12);
++        let (_, callback) = entry.unwrap();
++        callback(12, 0, 0);
++        assert!(dispatcher.pg_callouts.borrow().contains_key(&20));
++    }
++}
+diff --git a/src/hostcalls.rs b/src/hostcalls.rs
+index 51f3954..8a1d714 100644
+--- a/src/hostcalls.rs
++++ b/src/hostcalls.rs
+@@ -22,6 +22,109 @@ extern "C" {
+ }
+ 
+ pub type RedisCallbackFn = dyn FnOnce(u32, usize, usize);
++pub type PgCallbackFn = dyn FnOnce(u32, u32, usize);
++
++/// Raw ABI status: unknown host values remain representable, without an FFI enum.
++#[derive(Copy, Clone, Eq, PartialEq, Debug)]
++pub struct PgHostcallError(pub u32);
++
++impl std::fmt::Display for PgHostcallError {
++    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++        write!(f, "PostgreSQL hostcall failed (status {})", self.0)
++    }
++}
++
++impl std::error::Error for PgHostcallError {}
++
++extern "C" {
++    fn proxy_pg_init(
++        upstream_data: *const u8,
++        upstream_size: usize,
++        config_data: *const u8,
++        config_size: usize,
++        return_client: *mut u32,
++    ) -> u32;
++    fn proxy_pg_call(
++        client_id: u32,
++        request_data: *const u8,
++        request_size: usize,
++        timeout_ms: u32,
++        return_token: *mut u32,
++    ) -> u32;
++}
++
++/// Configure a root-scoped client; the connection is established lazily.
++pub fn pg_init(upstream: &str, config: &[u8]) -> Result<u32, PgHostcallError> {
++    if upstream.is_empty() || upstream.contains('\0') || config.is_empty() {
++        return Err(PgHostcallError(Status::BadArgument as u32));
++    }
++    let mut client = 0;
++    let status = unsafe {
++        proxy_pg_init(
++            upstream.as_ptr(),
++            upstream.len(),
++            config.as_ptr(),
++            config.len(),
++            &mut client,
++        )
++    };
++    match status {
++        0 if client != 0 => Ok(client),
++        0 => Err(PgHostcallError(Status::InternalFailure as u32)),
++        other => Err(PgHostcallError(other)),
++    }
++}
++
++pub fn dispatch_pg_call(
++    client_id: u32,
++    request: &[u8],
++    timeout: Duration,
++    callback: Box<PgCallbackFn>,
++) -> Result<u32, PgHostcallError> {
++    let millis = timeout.as_millis();
++    if client_id == 0 || request.is_empty() || millis == 0 || millis > u32::MAX as u128 {
++        return Err(PgHostcallError(Status::BadArgument as u32));
++    }
++    let mut token = 0;
++    let status = unsafe {
++        proxy_pg_call(
++            client_id,
++            request.as_ptr(),
++            request.len(),
++            millis as u32,
++            &mut token,
++        )
++    };
++    if status != 0 {
++        return Err(PgHostcallError(status));
++    }
++    if token == 0 || !dispatcher::register_pg_callout(token, callback) {
++        return Err(PgHostcallError(Status::InternalFailure as u32));
++    }
++    Ok(token)
++}
++
++/// Read while handling proxy_on_pg_call_response; the returned data is owned.
++pub fn get_pg_call_response(max_size: usize) -> Result<Option<Bytes>, PgHostcallError> {
++    let mut data = null_mut();
++    let mut size = 0;
++    let status = unsafe {
++        proxy_get_buffer_bytes(
++            BufferType::PgCallResponse,
++            0,
++            max_size,
++            &mut data,
++            &mut size,
++        )
++    };
++    match status {
++        0 if data.is_null() && size == 0 => Ok(None),
++        0 if !data.is_null() => Ok(Some(unsafe { Vec::from_raw_parts(data, size, size) })),
++        0 => Err(PgHostcallError(Status::InternalFailure as u32)),
++        1 => Ok(None),
++        other => Err(PgHostcallError(other)),
++    }
++}
+ 
+ pub fn log(level: LogLevel, message: &str) -> Result<(), Status> {
+     unsafe {
+@@ -80,7 +183,7 @@ extern "C" {
+         max_size: usize,
+         return_buffer_data: *mut *mut u8,
+         return_buffer_size: *mut usize,
+-    ) -> Status;
++    ) -> u32;
+ }
+ 
+ pub fn get_buffer(
+@@ -98,7 +201,7 @@ pub fn get_buffer(
+             &mut return_data,
+             &mut return_size,
+         ) {
+-            Status::Ok => {
++            0 => {
+                 if !return_data.is_null() {
+                     Ok(Some(Vec::from_raw_parts(
+                         return_data,
+@@ -109,8 +212,8 @@ pub fn get_buffer(
+                     Ok(None)
+                 }
+             }
+-            Status::NotFound => Ok(None),
+-            status => panic!("unexpected status: {}", status as u32),
++            1 => Ok(None),
++            status => panic!("unexpected status: {}", status),
+         }
+     }
+ }
+diff --git a/src/types.rs b/src/types.rs
+index fee2e50..780d279 100644
+--- a/src/types.rs
++++ b/src/types.rs
+@@ -104,6 +104,38 @@ pub enum BufferType {
+     PluginConfiguration = 7,
+     CallData = 8,
+     RedisCallResponse = 9,
++    /// Higress PostgreSQL call response. Available only during its callback.
++    PgCallResponse = 10,
++}
++
++/// PostgreSQL completion status, independent of the hostcall submission status.
++#[repr(u32)]
++#[derive(Copy, Clone, Eq, PartialEq, Debug)]
++pub enum PgCallStatus {
++    Ok = 0,
++    DatabaseError = 1,
++    NetworkError = 2,
++    Timeout = 3,
++    AuthenticationError = 4,
++    ProtocolError = 5,
++    ResourceExhausted = 6,
++}
++
++impl std::convert::TryFrom<u32> for PgCallStatus {
++    type Error = u32;
++
++    fn try_from(value: u32) -> Result<Self, Self::Error> {
++        match value {
++            0 => Ok(Self::Ok),
++            1 => Ok(Self::DatabaseError),
++            2 => Ok(Self::NetworkError),
++            3 => Ok(Self::Timeout),
++            4 => Ok(Self::AuthenticationError),
++            5 => Ok(Self::ProtocolError),
++            6 => Ok(Self::ResourceExhausted),
++            other => Err(other),
++        }
++    }
+ }
+ 
+ #[repr(u32)]

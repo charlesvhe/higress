@@ -1,0 +1,20 @@
+{
+  "tests": [
+    "select",
+    "parameters-null-empty-precision",
+    "single-statement",
+    "unicode-duplicate-columns-numeric",
+    "zero-rows",
+    "sqlstate-and-diagnostic-redaction",
+    "row-limit-and-recovery",
+    "non-idle-transaction-rejected",
+    "server-disconnect-and-recovery",
+    "deadline",
+    "concurrent-context-isolation",
+    "disconnect-and-recovery"
+  ],
+  "envoy_sha256": "b106e4fd427d2eb9a923858dafd30278253a452ff6f1562e5e02d21d7fe1518e",
+  "wasm_sha256": "9cf7877bad2f30449a2468543facae1d0dd480b52885df79e6e89c2a4d809dfe",
+  "runtime": "wamr",
+  "tls": false
+}

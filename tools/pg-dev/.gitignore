@@ -1,0 +1,16 @@
+/bin/
+/deps/
+/bazel/
+/pg-install/
+/pg-data/
+/socket/
+/venv/
+*.o
+/codec_test
+/codec_test_asan
+/protocol_integration
+/*.log
+/linux-cache/
+/artifacts/
+/__pycache__/
+/tls-fixture/

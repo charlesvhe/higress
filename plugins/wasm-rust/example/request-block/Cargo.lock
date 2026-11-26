@@ -360,7 +360,7 @@ dependencies = [
 [[package]]
 name = "proxy-wasm"
 version = "0.2.2"
-source = "git+https://github.com/higress-group/proxy-wasm-rust-sdk?branch=main#8c902102091698bec953471c850bdf9799bc344d"
+source = "git+https://github.com/charlesvhe/proxy-wasm-rust-sdk?rev=339466a0ceec01e5a7d05347e9d86f57c1daa218#339466a0ceec01e5a7d05347e9d86f57c1daa218"
 dependencies = [
  "downcast-rs",
  "hashbrown",

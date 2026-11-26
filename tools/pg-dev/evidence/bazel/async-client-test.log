@@ -1,0 +1,19 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //test/common/postgres:async_client_test
+-----------------------------------------------------------------------------
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from PgAsyncClientTest
+[ RUN      ] PgAsyncClientTest.CompletionIsPostedAndDeliveredOnce
+[       OK ] PgAsyncClientTest.CompletionIsPostedAndDeliveredOnce (22 ms)
+[ RUN      ] PgAsyncClientTest.CancellationBeforeDispatchReleasesCallback
+[       OK ] PgAsyncClientTest.CancellationBeforeDispatchReleasesCallback (16 ms)
+[ RUN      ] PgAsyncClientTest.QueueDeadlineIsTerminal
+[       OK ] PgAsyncClientTest.QueueDeadlineIsTerminal (16 ms)
+[ RUN      ] PgAsyncClientTest.ShutdownSuppressesAlreadyPostedCompletion
+[       OK ] PgAsyncClientTest.ShutdownSuppressesAlreadyPostedCompletion (16 ms)
+[----------] 4 tests from PgAsyncClientTest (71 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (71 ms total)
+[  PASSED  ] 4 tests.

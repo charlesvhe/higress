@@ -1,0 +1,118 @@
+{
+  "admin": {
+    "access_log_path": "/tmp/higress-pg-admin.log",
+    "address": {
+      "socket_address": {
+        "address": "127.0.0.1",
+        "port_value": 19001
+      }
+    }
+  },
+  "static_resources": {
+    "listeners": [
+      {
+        "name": "pg_test",
+        "address": {
+          "socket_address": {
+            "address": "127.0.0.1",
+            "port_value": 19000
+          }
+        },
+        "filter_chains": [
+          {
+            "filters": [
+              {
+                "name": "envoy.filters.network.http_connection_manager",
+                "typed_config": {
+                  "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                  "stat_prefix": "pg_test",
+                  "route_config": {
+                    "name": "pg",
+                    "virtual_hosts": [
+                      {
+                        "name": "pg",
+                        "domains": [
+                          "*"
+                        ],
+                        "routes": [
+                          {
+                            "match": {
+                              "prefix": "/"
+                            },
+                            "direct_response": {
+                              "status": 500,
+                              "body": {
+                                "inline_string": "PG callback did not reply"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "http_filters": [
+                    {
+                      "name": "envoy.filters.http.wasm",
+                      "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm",
+                        "config": {
+                          "name": "pg_query",
+                          "allow_on_headers_stop_iteration": true,
+                          "configuration": {
+                            "@type": "type.googleapis.com/google.protobuf.StringValue",
+                            "value": "{\"cluster\":\"pg\",\"username\":\"higress_scram\",\"password\":\"test-password\",\"database\":\"postgres\",\"tls_mode\":\"disable\",\"timeout_ms\":500}"
+                          },
+                          "vm_config": {
+                            "vm_id": "pg_query",
+                            "runtime": "envoy.wasm.runtime.v8",
+                            "code": {
+                              "local": {
+                                "filename": "/workspace/higress/plugins/wasm-rust/example/pg-query/target/wasm32-wasip1/release/pg_query.wasm"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "name": "envoy.filters.http.router",
+                      "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.filters.http.router.v3.Router"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "clusters": [
+      {
+        "name": "pg",
+        "connect_timeout": "1s",
+        "type": "STATIC",
+        "load_assignment": {
+          "cluster_name": "pg",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "127.0.0.1",
+                        "port_value": 65433
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

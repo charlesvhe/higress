@@ -1,0 +1,85 @@
+{
+  "recorded_at": "2026-11-26T07:49:03.100999+00:00",
+  "repositories": [
+    {
+      "path": "higress",
+      "base_sha": "1fef633553462434ccafad94a6ef35d2b367450f",
+      "patch": "patches/higress.patch",
+      "patch_sha256": "368215a9e664f66f66c29c918083887da3eaa24f43425c1c9bbf20d00a46c58a",
+      "files_sha256": {
+        "plugins/wasm-rust/Cargo.lock": "cc56e8c6fa12266c95b19914fd1aa81e02bb44f3d7e345f9bf96719b0de7f160",
+        "plugins/wasm-rust/Cargo.toml": "8a70fe6812bee6c6f434cc700f8d00864207f05327eaefe4e55806fbd04a6c80",
+        "plugins/wasm-rust/example/ai-intent/Cargo.lock": "205901c8f6708f018d6a33b4eee43ace4c9fbeaaf45890640dd11ce3e16a8143",
+        "plugins/wasm-rust/example/ai-intent/Cargo.toml": "f2bfa7fbf8215629e1c14383473f7d4520b796483f92b5b1acead0f837215174",
+        "plugins/wasm-rust/example/demo-wasm/Cargo.lock": "3db2730936860bf1c586cb2631df32b9aa44b61046d96bd37883ba1c49b51fd5",
+        "plugins/wasm-rust/example/demo-wasm/Cargo.toml": "29d55a49710c7a4d01cebf4cfbcff7afc08bd3a4a73ae67dfccf42dfced354ee",
+        "plugins/wasm-rust/example/pg-query/Cargo.lock": "2d05abd7b26a7e6257922f843ad81e2e68d9716aea06485b08bd930cf7783a4d",
+        "plugins/wasm-rust/example/pg-query/Cargo.toml": "4dd6b0ffae9407df16adc52c1d57384a06814651c24f95651bf9ebb515f0d203",
+        "plugins/wasm-rust/example/pg-query/README.md": "0aa361bd0b8493771315bed48e6663a1831262499bae0fb8dfc39ff2a28af2c6",
+        "plugins/wasm-rust/example/pg-query/src/lib.rs": "90d23afc1aa9a310f5fe13b4a0ac3480016a7ef70604dfab70c97b8358389786",
+        "plugins/wasm-rust/example/request-block/Cargo.lock": "c58f9e82aa82b5f4a33b18c601df589c573d6893053c2aeb51b1cb9dacf2b368",
+        "plugins/wasm-rust/example/request-block/Cargo.toml": "0147549dd98f809420da7a6e76ce3423f687e3ded4fd697e0f266708df1caeaa",
+        "plugins/wasm-rust/example/say-hello/Cargo.lock": "a18937ae6d37e21cd57ac384ee7dce55db300e5257938017728333ccc2dca7c6",
+        "plugins/wasm-rust/example/say-hello/Cargo.toml": "1cfe89ed8a38f584b5c6f86a747e16d984637434d641c5c0ea9bb350b4f5ad73",
+        "plugins/wasm-rust/example/sse-timing/Cargo.toml": "d55b279bc6a7fe2ad117f570dd565eec44a1eafb494f75a2ab242fd7714e6bf9",
+        "plugins/wasm-rust/example/wrapper-say-hello/Cargo.lock": "5b8cc83bc0841cf3803a845975e6c355cdc07ef15e2b715bc2c586b905faeb2b",
+        "plugins/wasm-rust/example/wrapper-say-hello/Cargo.toml": "eb885ed806e2fc7d1d41bee5601e3afb9d1187efee536ab288c6adbb14ff21f8",
+        "plugins/wasm-rust/extensions/ai-data-masking/Cargo.lock": "7470e011a296000991f1e93328d29fd03da4b617c1cff6ecab81bbace7ceed1c",
+        "plugins/wasm-rust/extensions/ai-data-masking/Cargo.toml": "aff1e2a5c01a3e58a3b3dab36b229655a34381fadbfffcf455170c81d72d1bf7",
+        "plugins/wasm-rust/src/lib.rs": "571e1028a9e759ad24bc9ee4a41d73e8053e719336adf01c5ac8de0b52e1385a",
+        "plugins/wasm-rust/src/pg_wrapper.rs": "1e675689b7faf5b5a26eeb27d02c1e20d2a7dbbec50355cc0dbc3704b58251ba"
+      }
+    },
+    {
+      "path": "proxy-wasm-rust-sdk",
+      "base_sha": "8c902102091698bec953471c850bdf9799bc344d",
+      "patch": "patches/proxy-wasm-rust-sdk.patch",
+      "patch_sha256": "5176c8218ecb9f95a44a4e8024e2882da55e80bc43fe7651a7c708117074cc56",
+      "files_sha256": {
+        "src/dispatcher.rs": "3a30a8f48204ef36cee8b2bd3d5a23532a08c5cc2cb73f130e30019012da6dd3",
+        "src/hostcalls.rs": "152d884ee14b83f4f1f8a6b0d2fd6247c6d7d3eff725e49db06c445141b4c117",
+        "src/types.rs": "74e40da77fde4716febfb8c1cd4722ca1033d3e6906b81d5d3eddd30672222f8"
+      }
+    },
+    {
+      "path": "proxy-wasm-cpp-host",
+      "base_sha": "d9c558753df6781388e36e0d51adc98c0b6835a0",
+      "patch": "patches/proxy-wasm-cpp-host.patch",
+      "patch_sha256": "d0fd734e04b350f628ad84c03616a9d22fac3ebe43210f1b25b2f23a15213182",
+      "files_sha256": {
+        "include/proxy-wasm/context.h": "09a0c9718fdaf20cc9dd7d7ed925c30ddc7497530a5e5b256f147fe828291d12",
+        "include/proxy-wasm/exports.h": "215dacc1d7d7326ec2384e0477432d3cc02602a02bcef56250c55478b1fe86f9",
+        "include/proxy-wasm/sdk.h": "32b68b50bae699e67255b8ffa2ee74d49a0ad79ee3ca642aa59e2eecb177e5ea",
+        "include/proxy-wasm/wasm.h": "6e8abf93fbe645518fe7a70e731ee1757c3b09578a52dbbcef362e1b0e2e4651",
+        "include/proxy-wasm/wasm_api_impl.h": "e04f858625fb1b290d819c91978683d59afd323d2bcd46909ed24869a8e2cddf",
+        "src/context.cc": "c419544b5387de89f84f42c5a5ed14267a1a9bf202479a2ce0c7a0811b8fb3ce",
+        "src/exports.cc": "cf58279f9decf9ba8240edfa43ee33c888e6bf05aaa6f32bcd895149e4eb4f73",
+        "src/null/null_plugin.cc": "5cd521a99d728a6bd13b728b360d30af297cc8b37c8513221f797599ce31627e",
+        "src/wamr/wamr.cc": "71b055c36a880ed81f7223df58c70e1fc229fe691431e350494c1e2ec38f23f1",
+        "src/wasm.cc": "2f7e4ba7fbb401efd0bb3e4113df4bfb5086ec5c2b97ce7ace4b8a3d26601401"
+      }
+    },
+    {
+      "path": "higress/envoy/envoy",
+      "base_sha": "0b37c366dfc09c0d780e4b1dc5b6a92b6c992ce6",
+      "patch": "patches/higress-envoy-envoy.patch",
+      "patch_sha256": "9fd5bf3a23b926aff11884723a8984e08ff929c39dcf3bee03edecf8add95dc4",
+      "files_sha256": {
+        "bazel/foreign_cc/BUILD": "1b35c4511c4fe6ce941949c46a6585b5369fc846908ec6bad282795d4ddd1066",
+        "bazel/foreign_cc/icu_data_filter.json": "8559451128092943f0e0e98995012c43ce2f1852f5318a995a80092753482a93",
+        "source/common/postgres/BUILD": "d7dd20f5715e47c28cf9cc0fa10b2684e10bd1edf594ac8a8d97d3b2ed2609e0",
+        "source/common/postgres/async_client.cc": "34343b28737c5cefda06d4e1dcea218162093b3d7c3018bae539ce56923c2679",
+        "source/common/postgres/async_client.h": "1dbf4af1ce172b0c43ac7831299444e65c40f17c58b91c72ea91ef02581a2eca",
+        "source/common/postgres/codec.cc": "c1ae1ccb73b4438f6454e55cb0c82b6cd2c40ffe88628916c9249cf224f68be0",
+        "source/common/postgres/codec.h": "e31a669c8d9aea871dc548664d768cef6cf4df753005e340ae593b6219305449",
+        "source/extensions/common/wasm/BUILD": "610749db9e40067616160dc37cd9178404d4e66633baf10dcf9dc1b3909f1f62",
+        "source/extensions/common/wasm/context.cc": "831b0864ffe2ef4520b1e8e5b9fc662d981e0ab2e97105ca011e565da4a2f7dc",
+        "source/extensions/common/wasm/context.h": "10099032cdbf4e043e3e4d34698c8b2300e5446b231a6b2e2b01871b6d447a8d",
+        "test/common/postgres/BUILD": "74a4307651c07f7fce4b344665ca7c1cd3ccf61d10eb7f6025ed3c1f649b2b05",
+        "test/common/postgres/async_client_test.cc": "9978115dcf88acc92aa48c15570ac16f8024bdfc181916c098f21177c03d89da",
+        "test/common/postgres/codec_test.cc": "e992a7d82c3e6d9bdc23685fe9b9f4d535700477e2bc61f70f57f6dadf65c240",
+        "test/extensions/common/wasm/wasm_test.cc": "49a7dc8ffe22e16487cc8e198c624aa443bd419fade637856189a19de07c39bb"
+      }
+    }
+  ]
+}

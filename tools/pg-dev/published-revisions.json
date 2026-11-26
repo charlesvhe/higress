@@ -1,0 +1,24 @@
+{
+  "branch": "feat/async-postgres-2.2.6",
+  "higress": {
+    "repository": "https://github.com/charlesvhe/higress",
+    "base_revision": "1fef633553462434ccafad94a6ef35d2b367450f"
+  },
+  "envoy": {
+    "repository": "https://github.com/charlesvhe/envoy",
+    "revision": "4d0b989a8f91f74d1985eb5f655819e312d8f964"
+  },
+  "proxy-wasm-rust-sdk": {
+    "repository": "https://github.com/charlesvhe/proxy-wasm-rust-sdk",
+    "revision": "339466a0ceec01e5a7d05347e9d86f57c1daa218"
+  },
+  "proxy-wasm-cpp-host": {
+    "repository": "charlesvhe/proxy-wasm-cpp-host",
+    "revision": "dec0d9632dbf523c67a93abbfbb220444802bb9e",
+    "sha256": "baae2160d9138c031d700f99277906d44288c5b3ec94facf4f206717693bd59d",
+    "strip_prefix": "proxy-wasm-cpp-host-dec0d9632dbf523c67a93abbfbb220444802bb9e"
+  },
+  "original_validation_snapshot": "source-manifest.json",
+  "publication_validation": "evidence/publication/",
+  "linux_v8_gateway": "not_built"
+}

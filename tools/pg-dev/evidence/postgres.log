@@ -1,0 +1,42 @@
+2026-11-26 14:23:06.757 CST [25083] LOG:  starting PostgreSQL 16.6 on aarch64-apple-darwin27.2.0, compiled by Apple clang version 21.0.0 (clang-2100.4.1.1), 64-bit
+2026-11-26 14:23:06.757 CST [25083] LOG:  listening on IPv4 address "127.0.0.1", port 65432
+2026-11-26 14:23:06.758 CST [25083] LOG:  listening on Unix socket "/Users/charles/Desktop/技术沙龙/pg-dev/socket/.s.PGSQL.65432"
+2026-11-26 14:23:06.761 CST [25086] LOG:  database system was shut down at 2026-11-26 14:23:06 CST
+2026-11-26 14:23:06.764 CST [25083] LOG:  database system is ready to accept connections
+2026-11-26 14:23:07.124 CST [25091] ERROR:  role name "pg_scram" is reserved
+2026-11-26 14:23:07.124 CST [25091] DETAIL:  Role names starting with "pg_" are reserved.
+2026-11-26 14:23:07.124 CST [25091] STATEMENT:  CREATE ROLE pg_scram LOGIN PASSWORD 'test-password';
+2026-11-26 14:23:07.129 CST [25083] LOG:  received fast shutdown request
+2026-11-26 14:23:07.129 CST [25083] LOG:  aborting any active transactions
+2026-11-26 14:23:07.130 CST [25083] LOG:  background worker "logical replication launcher" (PID 25089) exited with exit code 1
+2026-11-26 14:23:07.130 CST [25084] LOG:  shutting down
+2026-11-26 14:23:07.130 CST [25084] LOG:  checkpoint starting: shutdown immediate
+2026-11-26 14:23:07.132 CST [25084] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.002 s; sync files=2, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=0 kB; lsn=0/14A24B8, redo lsn=0/14A24B8
+2026-11-26 14:23:07.134 CST [25083] LOG:  database system is shut down
+2026-11-26 14:24:00.980 CST [25135] LOG:  starting PostgreSQL 16.6 on aarch64-apple-darwin27.2.0, compiled by Apple clang version 21.0.0 (clang-2100.4.1.1), 64-bit
+2026-11-26 14:24:00.980 CST [25135] LOG:  listening on IPv4 address "127.0.0.1", port 65432
+2026-11-26 14:24:00.980 CST [25135] LOG:  listening on Unix socket "/Users/charles/Desktop/技术沙龙/pg-dev/socket/.s.PGSQL.65432"
+2026-11-26 14:24:00.982 CST [25138] LOG:  database system was shut down at 2026-11-26 14:23:07 CST
+2026-11-26 14:24:00.984 CST [25135] LOG:  database system is ready to accept connections
+2026-11-26 14:24:01.100 CST [25135] LOG:  received SIGHUP, reloading configuration files
+2026-11-26 14:24:01.424 CST [25147] ERROR:  cannot insert multiple commands into a prepared statement
+2026-11-26 14:24:01.424 CST [25147] STATEMENT:  SELECT 1; SELECT 2
+2026-11-26 14:24:01.425 CST [25147] ERROR:  syntax error at or near "SELEC" at character 1
+2026-11-26 14:24:01.425 CST [25147] STATEMENT:  SELEC 1
+2026-11-26 14:24:01.450 CST [25150] ERROR:  cannot insert multiple commands into a prepared statement
+2026-11-26 14:24:01.450 CST [25150] STATEMENT:  SELECT 1; SELECT 2
+2026-11-26 14:24:01.451 CST [25150] ERROR:  syntax error at or near "SELEC" at character 1
+2026-11-26 14:24:01.451 CST [25150] STATEMENT:  SELEC 1
+2026-11-26 14:24:01.473 CST [25153] ERROR:  cannot insert multiple commands into a prepared statement
+2026-11-26 14:24:01.473 CST [25153] STATEMENT:  SELECT 1; SELECT 2
+2026-11-26 14:24:01.474 CST [25153] ERROR:  syntax error at or near "SELEC" at character 1
+2026-11-26 14:24:01.474 CST [25153] STATEMENT:  SELEC 1
+2026-11-26 14:24:01.492 CST [25156] FATAL:  password authentication failed for user "higress_scram"
+2026-11-26 14:24:01.492 CST [25156] DETAIL:  Connection matched file "/Users/charles/Desktop/技术沙龙/pg-dev/pg-data/pg_hba.conf" line 2: "host all higress_scram 127.0.0.1/32 scram-sha-256"
+2026-11-26 14:24:01.498 CST [25135] LOG:  received fast shutdown request
+2026-11-26 14:24:01.498 CST [25135] LOG:  aborting any active transactions
+2026-11-26 14:24:01.498 CST [25135] LOG:  background worker "logical replication launcher" (PID 25141) exited with exit code 1
+2026-11-26 14:24:01.498 CST [25136] LOG:  shutting down
+2026-11-26 14:24:01.498 CST [25136] LOG:  checkpoint starting: shutdown immediate
+2026-11-26 14:24:01.499 CST [25136] LOG:  checkpoint complete: wrote 7 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.002 s; sync files=6, longest=0.001 s, average=0.001 s; distance=4 kB, estimate=4 kB; lsn=0/14A3580, redo lsn=0/14A3580
+2026-11-26 14:24:01.500 CST [25135] LOG:  database system is shut down

@@ -17,6 +17,7 @@ pub mod error;
 pub mod event_stream;
 mod internal;
 pub mod log;
+pub mod pg_wrapper;
 pub mod plugin_wrapper;
 pub mod redis_wrapper;
 pub mod request_wrapper;

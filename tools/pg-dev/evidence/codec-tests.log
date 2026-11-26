@@ -1,0 +1,25 @@
+Running main() from /Users/charles/Desktop/技术沙龙/pg-dev/deps/googletest/googletest/src/gtest_main.cc
+[==========] Running 8 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 8 tests from PgCodec
+[ RUN      ] PgCodec.SplitAndCoalescedFrames
+[       OK ] PgCodec.SplitAndCoalescedFrames (0 ms)
+[ RUN      ] PgCodec.InvalidLengthAndOversize
+[       OK ] PgCodec.InvalidLengthAndOversize (0 ms)
+[ RUN      ] PgCodec.DecoderLimitTransitionPreservesPartialFrames
+[       OK ] PgCodec.DecoderLimitTransitionPreservesPartialFrames (0 ms)
+[ RUN      ] PgCodec.RejectsDeeplyNestedUnknownEnvelopeFields
+[       OK ] PgCodec.RejectsDeeplyNestedUnknownEnvelopeFields (1 ms)
+[ RUN      ] PgCodec.ParameterBindingIsSeparateFromSql
+[       OK ] PgCodec.ParameterBindingIsSeparateFromSql (0 ms)
+[ RUN      ] PgCodec.ResultPreservesDuplicateColumnsNullAndPrecision
+[       OK ] PgCodec.ResultPreservesDuplicateColumnsNullAndPrecision (0 ms)
+[ RUN      ] PgCodec.ScramRejectsWrongNonceAndServerSignature
+[       OK ] PgCodec.ScramRejectsWrongNonceAndServerSignature (19 ms)
+[ RUN      ] PgCodec.DatabaseErrorsNeverEchoServerDiagnostics
+[       OK ] PgCodec.DatabaseErrorsNeverEchoServerDiagnostics (0 ms)
+[----------] 8 tests from PgCodec (23 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 1 test suite ran. (23 ms total)
+[  PASSED  ] 8 tests.

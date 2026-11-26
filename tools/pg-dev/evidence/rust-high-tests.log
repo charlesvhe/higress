@@ -1,0 +1,24 @@
+   Compiling proxy-wasm v0.2.2 (/Users/charles/Desktop/技术沙龙/proxy-wasm-rust-sdk)
+   Compiling higress-wasm-rust v0.1.0 (/Users/charles/Desktop/技术沙龙/higress/plugins/wasm-rust)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.62s
+     Running unittests src/lib.rs (higress/plugins/wasm-rust/target/debug/build/higress-wasm-rust/cd1e01b55ab393c4/out/higress_wasm_rust-cd1e01b55ab393c4)
+
+running 15 tests
+test event_stream::tests::test_lf_events ... ok
+test event_stream::tests::test_crlf_events ... ok
+test event_stream::tests::test_mixed2_eol_events ... ok
+test event_stream::tests::test_partial_event ... ok
+test event_stream::tests::test_no_event ... ok
+test event_stream::tests::test_mixed_eol_events ... ok
+test pg_wrapper::tests::preserves_null_empty_precision_and_duplicate_columns ... ok
+test rule_matcher::tests::test_host_match ... ok
+test pg_wrapper::tests::validates_protocol_and_sqlstate ... ok
+test pg_wrapper::tests::parameter_binding_and_limits ... ok
+test rule_matcher::tests::test_match_route1_config ... ok
+test rule_matcher::tests::test_match_route_config ... ok
+test rule_matcher::tests::test_parse_override_config ... ok
+test rule_matcher::tests::test_service_match ... ok
+test rule_matcher::tests::test_parse_rule_config ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,9 @@
+SET
+ALTER ROLE
+SET
+CREATE ROLE
+SET
+CREATE ROLE
+{"authentication_method":12,"passed":12,"scram_verified":true,"tls_verified":true}
+{"authentication_method":5,"passed":12,"scram_verified":false,"tls_verified":true}
+{"authentication_method":12,"passed":12,"scram_verified":true,"tls_verified":true}
